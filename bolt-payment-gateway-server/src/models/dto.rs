@@ -71,7 +71,7 @@ pub fn convert_money_from_string(amount: String) -> Result<u128, ()> {
 // Response DTOs
 #[derive(Debug, Serialize)]
 pub struct InvoiceResponse {
-    pub invoice_id: String,
+    pub id: String,
     pub status: InvoiceStatus,
     pub amount: String,
     pub settlement_asset: SettlementAsset,
@@ -83,8 +83,8 @@ pub struct InvoiceResponse {
 impl From<Invoice> for InvoiceResponse {
     fn from(invoice: Invoice) -> Self {
         Self {
-            checkout_url: format!("https://pay.example.com/i/{}", invoice.invoice_id),
-            invoice_id: invoice.invoice_id,
+            checkout_url: format!("https://pay.example.com/i/{}", invoice.id.to_string()),
+            id: invoice.id.to_string(),
             status: invoice.status,
             amount: format_money_amount(invoice.amount),
             settlement_asset: invoice.settlement_asset,

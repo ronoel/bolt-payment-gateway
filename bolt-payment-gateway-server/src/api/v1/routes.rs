@@ -5,8 +5,9 @@ use axum::{
 };
 
 use crate::handlers::{handler_invoices, handler_payments};
+use crate::AppState;
 
-pub fn create_routes() -> Router {
+pub fn create_routes() -> Router<AppState> {
     Router::new()
         // Invoice routes
         .route(
