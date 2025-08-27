@@ -1,3 +1,3 @@
 // src/handlers/mod.rs
-pub mod handler_invoices;
-pub mod handler_payments;
+pub mod invoices_handler;
+pub mod payments_handler;

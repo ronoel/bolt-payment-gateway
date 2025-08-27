@@ -4,7 +4,7 @@ use axum::{
     Router,
 };
 
-use crate::handlers::{handler_invoices, handler_payments};
+use crate::handlers::{invoices_handler, payments_handler};
 use crate::AppState;
 
 pub fn create_routes() -> Router<AppState> {
@@ -12,13 +12,13 @@ pub fn create_routes() -> Router<AppState> {
         // Invoice routes
         .route(
             "/merchants/{wallet_address}/invoices",
-            post(handler_invoices::create_invoice)
-                .get(handler_invoices::list_invoices),
+            post(invoices_handler::create_invoice)
+                .get(invoices_handler::list_invoices),
         )
-        .route("/invoices/{invoice_id}", get(handler_invoices::get_invoice))
+        .route("/invoices/{invoice_id}", get(invoices_handler::get_invoice))
         // Payment routes
         .route(
             "/invoices/{invoice_id}/payments/submit",
-            post(handler_payments::submit_payment),
+            post(payments_handler::submit_payment),
         )
 }

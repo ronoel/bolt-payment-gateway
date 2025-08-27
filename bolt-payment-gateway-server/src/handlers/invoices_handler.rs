@@ -6,7 +6,6 @@ use axum::{
 };
 use bson::oid::ObjectId;
 use chrono::Utc;
-use uuid::Uuid;
 
 use crate::models::{
     convert_money_from_string, CreateInvoiceRequest, ErrorResponse, Invoice, InvoiceResponse, InvoiceStatus, ListInvoicesQuery, ListInvoicesResponse
@@ -47,7 +46,7 @@ pub async fn create_invoice(
         settlement_asset: request.settlement_asset,
         merchant_order_id: request.merchant_order_id,
         created_at: Utc::now(),
-        expires_at: Some(Utc::now() + chrono::Duration::hours(24)), // 24 hour expiry
+        expires_at: Some(Utc::now() + chrono::Duration::minutes(2)), // 2 minute expiry
     };
 
     // Save to database
