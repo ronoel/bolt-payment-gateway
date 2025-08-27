@@ -13,7 +13,7 @@ pub struct Invoice {
     pub status: InvoiceStatus,
 
     /// Amount of the invoice in the settlement asset (kept as string to match the schema).
-    pub amount: String,
+    pub amount: u128,
 
     /// Asset in which the merchant will settle.
     pub settlement_asset: SettlementAsset,
