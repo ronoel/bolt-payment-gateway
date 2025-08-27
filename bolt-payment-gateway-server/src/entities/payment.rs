@@ -2,10 +2,10 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-/// PaymentResult entity — mirrors the OpenAPI schema.
+/// Payment entity — mirrors the OpenAPI schema.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-pub struct PaymentResult {
+pub struct Payment {
     /// Unique identifier of the payment attempt.
     pub payment_id: String,
 
