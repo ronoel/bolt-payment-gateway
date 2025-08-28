@@ -35,54 +35,6 @@ fn default_limit() -> usize {
     20
 }
 
-/// Convert string to objectId
-/// Example: "507f1f77bcf86cd799439011" -> ObjectId::with_string("507f1f77bcf86cd799439011")
-pub fn convert_string_to_object_id(id: &str) -> Result<bson::oid::ObjectId, (StatusCode, Json<ErrorResponse>)> {
-    bson::oid::ObjectId::parse_str(id).map_err(|_| {
-        (
-            StatusCode::BAD_REQUEST,
-            Json(ErrorResponse {
-                error: "invalid_object_id".to_string(),
-                message: "Invalid ObjectId format".to_string(),
-            }),
-        )
-    })
-}
-
-/// Convert u128 amount to USD string with 2 decimal places
-/// Example: 2345 -> "23.45", 4 -> "0.04", 100 -> "1.00"
-pub fn format_money_amount(amount: u128) -> String {
-    let dollars = amount / 100;
-    let cents = amount % 100;
-    format!("{}.{:02}", dollars, cents)
-}
-
-pub fn convert_money_from_string(amount: String) -> Result<u128, ()> {
-    // Parse the amount string (e.g., "23.45" -> 2345, "1.00" -> 100)
-    let parts: Vec<&str> = amount.split('.').collect();
-    match parts.len() {
-        1 => {
-            // No decimal point, treat as dollars
-            let dollars = parts[0].parse::<u128>().map_err(|_| ())?;
-            Ok(dollars * 100)
-        }
-        2 => {
-            // Has decimal point
-            let dollars = parts[0].parse::<u128>().map_err(|_| ())?;
-            let cents_str = if parts[1].len() == 1 {
-                format!("{}0", parts[1]) // "5" -> "50"
-            } else if parts[1].len() == 2 {
-                parts[1].to_string()
-            } else {
-                return Err(()); // Invalid format
-            };
-            let cents = cents_str.parse::<u128>().map_err(|_| ())?;
-            Ok(dollars * 100 + cents)
-        }
-        _ => Err(()),
-    }
-}
-
 // Response DTOs
 #[derive(Debug, Serialize)]
 pub struct InvoiceResponse {
@@ -142,8 +94,79 @@ pub struct ListInvoicesResponse {
     pub offset: usize,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct QuoteQuery {
+    pub from: String,
+    pub to: String,
+    pub to_amount: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct QuoteResponse {
+    pub from_asset: String,
+    pub to_asset: String,
+    pub from_amount: String,
+    pub to_amount: String,
+    pub unit_price: String,
+    pub spread: String,
+    pub refreshed_at: DateTime<Utc>,
+}
+
 #[derive(Debug, Serialize)]
 pub struct ErrorResponse {
     pub error: String,
     pub message: String,
+}
+
+
+/// Convert string to objectId
+/// Example: "507f1f77bcf86cd799439011" -> ObjectId::with_string("507f1f77bcf86cd799439011")
+pub fn convert_string_to_object_id(id: &str) -> Result<bson::oid::ObjectId, (StatusCode, Json<ErrorResponse>)> {
+    bson::oid::ObjectId::parse_str(id).map_err(|_| {
+        (
+            StatusCode::BAD_REQUEST,
+            Json(ErrorResponse {
+                error: "invalid_object_id".to_string(),
+                message: "Invalid ObjectId format".to_string(),
+            }),
+        )
+    })
+}
+
+/// Convert u128 amount to USD string with 2 decimal places
+/// Example: 2345 -> "23.45", 4 -> "0.04", 100 -> "1.00"
+pub fn format_money_amount(amount: u128) -> String {
+    let dollars = amount / 100;
+    let cents = amount % 100;
+    format!("{}.{:02}", dollars, cents)
+}
+
+pub fn convert_money_from_string(amount: String) -> Result<u128, ()> {
+    // Parse the amount string (e.g., "23.45" -> 2345, "121.45454" -> 12145)
+    let parts: Vec<&str> = amount.split('.').collect();
+    match parts.len() {
+        1 => {
+            // No decimal point, treat as dollars
+            let dollars = parts[0].parse::<u128>().map_err(|_| ())?;
+            Ok(dollars * 100)
+        }
+        2 => {
+            // Has decimal point
+            let dollars = parts[0].parse::<u128>().map_err(|_| ())?;
+            let decimal_part = parts[1];
+            
+            // Take only first 2 digits for cents, pad with 0 if needed
+            let cents_str = if decimal_part.is_empty() {
+                "00".to_string()
+            } else if decimal_part.len() == 1 {
+                format!("{}0", &decimal_part[0..1])
+            } else {
+                decimal_part[0..2].to_string() // Take first 2 digits only
+            };
+            
+            let cents = cents_str.parse::<u128>().map_err(|_| ())?;
+            Ok(dollars * 100 + cents)
+        }
+        _ => Err(()),
+    }
 }

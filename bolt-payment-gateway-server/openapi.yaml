@@ -219,9 +219,9 @@ paths:
     get:
       summary: Get a conversion quote
       description: |
-        Returns how much of `to` asset is equivalent to a given amount of `from` asset.
-        Useful for determining how much a customer must pay in one token
-        to satisfy an invoice defined in another token (e.g., BTC → USD).
+        Returns how much Bitcoin (in satoshis) a customer must pay for a specified USD amount.
+        This is useful for determining the exact satoshi amount needed to satisfy an invoice 
+        defined in USD.
       operationId: getQuote
       tags: [Quotes]
       parameters:
@@ -230,22 +230,22 @@ paths:
           required: true
           schema:
             type: string
-          description: Asset to convert from (e.g., BTC, sBTC, USDT).
+          description: Asset to convert from (currently only BTC supported).
           example: "BTC"
         - in: query
           name: to
           required: true
           schema:
             type: string
-          description: Asset to convert to (e.g., USD, BRL).
+          description: Asset to convert to (currently only USD supported).
           example: "USD"
         - in: query
-          name: amount
+          name: to_amount
           required: true
           schema:
             type: string
-          description: Amount in `from` asset to convert.
-          example: "0.01"
+          description: Amount in USD that the customer wants to pay.
+          example: "100.00"
       responses:
         '200':
           description: Quote returned successfully
@@ -271,15 +271,15 @@ components:
           example: "USD"
         from_amount:
           type: string
-          description: Input amount in the from_asset.
-          example: "0.01"
+          description: Amount in satoshis the customer needs to pay.
+          example: "153846"
         to_amount:
           type: string
-          description: Output amount in the to_asset after conversion.
-          example: "650.00"
+          description: Amount in USD the customer wants to pay.
+          example: "100.00"
         unit_price:
           type: string
-          description: Conversion rate (to_asset per 1 unit of from_asset).
+          description: Price per BTC in USD (including spread).
           example: "65000.00"
         refreshed_at:
           type: string

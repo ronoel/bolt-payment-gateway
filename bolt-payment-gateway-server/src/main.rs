@@ -3,6 +3,8 @@ mod api;
 mod database;
 mod handlers;
 mod models;
+mod services;
+mod shared;
 
 use axum::{routing::get, Router};
 use tower::ServiceBuilder;
@@ -11,10 +13,12 @@ use tracing_subscriber;
 use std::env;
 
 use database::{MongoDBClient, InvoiceRepository};
+use services::quote_service::QuoteService;
 
 #[derive(Clone)]
 pub struct AppState {
     pub invoice_repository: InvoiceRepository,
+    pub quote_service: QuoteService,
 }
 
 #[tokio::main]
@@ -37,9 +41,13 @@ async fn main() {
     // Initialize repositories
     let invoice_repository = InvoiceRepository::new(mongodb_client.get_database());
 
+    // Initialize services
+    let quote_service = QuoteService::new();
+
     // Create application state
     let app_state = AppState {
         invoice_repository,
+        quote_service,
     };
 
     // Build our application with routes
