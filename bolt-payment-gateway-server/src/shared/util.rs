@@ -20,6 +20,7 @@ pub fn calculate_satoshis_for_usd(usd_cents: u128, btc_price_usd_cents: u128) ->
     (usd_cents * SATOSHIS_PER_BTC) / btc_price_usd_cents
 }
 
+/// Calculate the amount of satoshis needed for a given USD amount, including a spread per 1000
 pub fn calculate_satoshis_for_usd_with_spread(usd_cents: u128, btc_price_usd_cents: u128, spread_percentage: u128) -> u128 {
     // Calculate how much BTC (in satoshis) the user needs to pay for the desired USD amount
     let satoshis_needed = calculate_satoshis_for_usd(usd_cents, btc_price_usd_cents);
