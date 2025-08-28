@@ -2,10 +2,10 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-/// PaymentResult entity — mirrors the OpenAPI schema.
+/// Payment entity — mirrors the OpenAPI schema.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-pub struct PaymentResult {
+pub struct Payment {
     /// Unique identifier of the payment attempt.
     pub payment_id: String,
 
@@ -19,7 +19,7 @@ pub struct PaymentResult {
     pub asset: PaymentToken,
 
     /// Actual amount processed in this payment.
-    pub amount: String,
+    pub amount: u128,
 
     /// Timestamp when the payment was received (RFC3339).
     pub received_at: DateTime<Utc>,
@@ -41,8 +41,9 @@ pub enum PaymentStatus {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
 pub enum PaymentToken {
-    sBTC,
-    USDt
+    #[serde(rename = "sBTC")]
+    SBtc,
+    #[serde(rename = "USDT")]
+    Usdt,
 }

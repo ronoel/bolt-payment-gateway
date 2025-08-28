@@ -1,0 +1,357 @@
+openapi: 3.1.0
+info:
+  title: sBTC Payment Gateway API
+  description: API for creating invoices, retrieving invoices, fetching quotes, listing merchant invoices, and submitting payments (with multi-asset support in the future).
+  version: 0.7.0
+servers:
+  - url: https://api.example.com/v1
+    description: Production API
+  - url: https://sandbox.api.example.com/v1
+    description: Sandbox/Test API
+
+paths:
+  /merchants/{wallet_address}/invoices:
+    post:
+      summary: Create a new invoice
+      operationId: createInvoice
+      tags: [Invoices]
+      parameters:
+        - in: path
+          name: wallet_address
+          required: true
+          schema:
+            type: string
+          description: Wallet address of the merchant creating the invoice.
+          example: "SP3FBR2AGKX6Q2P3W9GH8ZC5ZZ5W9S9C8F3W9C1A"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [amount, settlement_asset, merchant_order_id]
+              properties:
+                amount:
+                  type: string
+                  description: Amount the merchant wants to receive, expressed in settlement currency.
+                  example: "49.90"
+                settlement_asset:
+                  type: string
+                  description: Currency in which the merchant will settle.
+                  enum: [USD, BRL]
+                  example: "USD"
+                merchant_order_id:
+                  type: string
+                  description: Merchant-defined order ID for reconciliation.
+                  example: "ORD-12345"
+      responses:
+        '200':
+          description: Invoice successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+        '400':
+          description: Invalid amount
+
+    get:
+      summary: List and search merchant invoices
+      description: |
+        Returns a paginated list of invoices for the given merchant wallet address.
+        Supports optional filtering by status, merchant_order_id, and date range.
+      operationId: listInvoices
+      tags: [Invoices]
+      parameters:
+        - in: path
+          name: wallet_address
+          required: true
+          schema:
+            type: string
+          description: Wallet address of the merchant.
+          example: "SP3FBR2AGKX6Q2P3W9GH8ZC5ZZ5W9S9C8F3W9C1A"
+
+        - in: query
+          name: status
+          required: false
+          schema:
+            type: string
+            enum: [created, paid, expired, settled]
+          description: Filter invoices by status.
+          example: "paid"
+
+        - in: query
+          name: merchant_order_id
+          required: false
+          schema:
+            type: string
+          description: Filter invoices by merchant-defined order ID.
+          example: "ORD-12345"
+
+        - in: query
+          name: from_date
+          required: false
+          schema:
+            type: string
+            format: date-time
+          description: Filter invoices created after this date (inclusive).
+          example: "2025-08-01T00:00:00Z"
+
+        - in: query
+          name: to_date
+          required: false
+          schema:
+            type: string
+            format: date-time
+          description: Filter invoices created before this date (inclusive).
+          example: "2025-08-31T23:59:59Z"
+
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+          description: Number of invoices to return per page.
+          example: 20
+
+        - in: query
+          name: offset
+          required: false
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+          description: Number of invoices to skip (for pagination).
+          example: 0
+
+      responses:
+        '200':
+          description: Paginated list of invoices
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Invoice'
+                  total:
+                    type: integer
+                    description: Total number of invoices matching the query.
+                    example: 145
+                  limit:
+                    type: integer
+                    example: 20
+                  offset:
+                    type: integer
+                    example: 0
+        '400':
+          description: Invalid request parameters
+
+  /invoices/{invoice_id}:
+    get:
+      summary: Retrieve an invoice
+      operationId: getInvoice
+      tags: [Invoices]
+      parameters:
+        - in: path
+          name: invoice_id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Invoice found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+        '404':
+          description: Invoice not found
+
+  /invoices/{invoice_id}/payments/submit:
+    post:
+      summary: Submit a payment transaction for an invoice
+      operationId: submitPayment
+      tags: [Payments]
+      parameters:
+        - in: path
+          name: invoice_id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [serialized_transaction, asset, amount]
+              properties:
+                serialized_transaction:
+                  type: string
+                  description: Serialized transaction to be submitted via this API (e.g., Bolt or another network in the future).
+                  example: "0xabcdef123456..."
+                asset:
+                  type: string
+                  description: Asset used for the payment (e.g., sBTC, BTC, USDT).
+                  example: "sBTC"
+                amount:
+                  type: string
+                  description: Amount sent in the transaction (string decimal for flexibility).
+                  example: "0.002345"
+      responses:
+        '200':
+          description: Payment accepted and processed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResult'
+        '409':
+          description: Invoice already paid or expired
+        '422':
+          description: Underpayment detected at submission
+
+  /quotes:
+    get:
+      summary: Get a conversion quote
+      description: |
+        Returns how much of `to` asset is equivalent to a given amount of `from` asset.
+        Useful for determining how much a customer must pay in one token
+        to satisfy an invoice defined in another token (e.g., BTC → USD).
+      operationId: getQuote
+      tags: [Quotes]
+      parameters:
+        - in: query
+          name: from
+          required: true
+          schema:
+            type: string
+          description: Asset to convert from (e.g., BTC, sBTC, USDT).
+          example: "BTC"
+        - in: query
+          name: to
+          required: true
+          schema:
+            type: string
+          description: Asset to convert to (e.g., USD, BRL).
+          example: "USD"
+        - in: query
+          name: amount
+          required: true
+          schema:
+            type: string
+          description: Amount in `from` asset to convert.
+          example: "0.01"
+      responses:
+        '200':
+          description: Quote returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Quote'
+        '400':
+          description: Invalid request parameters
+
+components:
+  schemas:
+    Quote:
+      type: object
+      properties:
+        from_asset:
+          type: string
+          description: Asset being converted from.
+          example: "BTC"
+        to_asset:
+          type: string
+          description: Asset being converted to.
+          example: "USD"
+        from_amount:
+          type: string
+          description: Input amount in the from_asset.
+          example: "0.01"
+        to_amount:
+          type: string
+          description: Output amount in the to_asset after conversion.
+          example: "650.00"
+        unit_price:
+          type: string
+          description: Conversion rate (to_asset per 1 unit of from_asset).
+          example: "65000.00"
+        refreshed_at:
+          type: string
+          format: date-time
+          description: Timestamp when this quote was calculated.
+          example: "2025-08-26T00:03:32Z"
+
+    Invoice:
+      type: object
+      properties:
+        invoice_id:
+          type: string
+          description: Unique identifier of the invoice.
+          example: "inv_001"
+        status:
+          type: string
+          description: Current status of the invoice.
+          enum: [created, paid, expired, settled]
+          example: "paid"
+        amount:
+          type: string
+          description: Amount of the invoice in the settlement asset.
+          example: "49.90"
+        settlement_asset:
+          type: string
+          description: Asset in which the merchant will settle.
+          enum: [USD, BRL]
+          example: "USD"
+        merchant_order_id:
+          type: string
+          description: Merchant-defined order ID.
+          example: "ORD-12345"
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the invoice was created.
+          example: "2025-08-26T00:03:12Z"
+        checkout_url:
+          type: string
+          description: Hosted checkout URL that can be shared with customers for payment.
+          example: "https://pay.example.com/i/inv_001"
+
+    PaymentResult:
+      type: object
+      properties:
+        payment_id:
+          type: string
+          description: Unique identifier of the payment attempt.
+          example: "pay_001"
+        invoice_id:
+          type: string
+          description: Invoice ID associated with this payment.
+          example: "inv_001"
+        status:
+          type: string
+          description: Current status of the payment.
+          enum: [accepted, rejected, confirmed]
+          example: "accepted"
+        asset:
+          type: string
+          description: Asset used in the payment.
+          example: "sBTC"
+        amount:
+          type: string
+          description: Actual amount processed in this payment.
+          example: "0.002345"
+        received_at:
+          type: string
+          format: date-time
+          description: Timestamp when the payment was received.
+          example: "2025-08-26T00:05:12Z"
+        tx_id:
+          type: string
+          description: Transaction ID/hash on the underlying network.
+          example: "0xbolt123abc..."
