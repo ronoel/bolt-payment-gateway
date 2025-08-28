@@ -8,7 +8,7 @@ use bson::oid::ObjectId;
 use chrono::Utc;
 
 use crate::models::{
-    convert_money_from_string, CreateInvoiceRequest, ErrorResponse, Invoice, InvoiceResponse, InvoiceStatus, ListInvoicesQuery, ListInvoicesResponse
+    convert_money_from_string, convert_string_to_object_id, CreateInvoiceRequest, ErrorResponse, Invoice, InvoiceResponse, InvoiceStatus, ListInvoicesQuery, ListInvoicesResponse
 };
 use crate::AppState;
 
@@ -79,18 +79,7 @@ pub async fn get_invoice(
 ) -> Result<Json<InvoiceResponse>, (StatusCode, Json<ErrorResponse>)> {
 
     // convert the string ID to ObjectId
-    let object_id = match ObjectId::parse_str(&invoice_id) {
-        Ok(id) => id,
-        Err(_) => {
-            return Err((
-                StatusCode::BAD_REQUEST,
-                Json(ErrorResponse {
-                    error: "invalid_invoice_id".to_string(),
-                    message: "Invalid invoice ID format".to_string(),
-                }),
-            ));
-        }
-    };
+    let object_id = convert_string_to_object_id(&invoice_id)?;
 
     // Try to find the invoice in the database
     match app_state.invoice_repository.find_by_id(&object_id).await {

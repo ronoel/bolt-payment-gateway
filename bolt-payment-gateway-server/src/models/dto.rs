@@ -1,3 +1,4 @@
+use axum::{http::StatusCode, Json};
 // src/models/dto.rs
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -32,6 +33,20 @@ pub struct ListInvoicesQuery {
 
 fn default_limit() -> usize {
     20
+}
+
+/// Convert string to objectId
+/// Example: "507f1f77bcf86cd799439011" -> ObjectId::with_string("507f1f77bcf86cd799439011")
+pub fn convert_string_to_object_id(id: &str) -> Result<bson::oid::ObjectId, (StatusCode, Json<ErrorResponse>)> {
+    bson::oid::ObjectId::parse_str(id).map_err(|_| {
+        (
+            StatusCode::BAD_REQUEST,
+            Json(ErrorResponse {
+                error: "invalid_object_id".to_string(),
+                message: "Invalid ObjectId format".to_string(),
+            }),
+        )
+    })
 }
 
 /// Convert u128 amount to USD string with 2 decimal places
