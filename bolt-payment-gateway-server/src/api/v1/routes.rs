@@ -4,7 +4,7 @@ use axum::{
     Router,
 };
 
-use crate::handlers::{invoices_handler, payments_handler};
+use crate::handlers::{invoices_handler, payments_handler, quotes_handler};
 use crate::AppState;
 
 pub fn create_routes() -> Router<AppState> {
@@ -21,4 +21,6 @@ pub fn create_routes() -> Router<AppState> {
             "/invoices/{invoice_id}/payments/submit",
             post(payments_handler::submit_payment),
         )
+        // Quote routes
+        .route("/quotes", get(quotes_handler::get_quote))
 }
