@@ -79,7 +79,7 @@ pub async fn get_quote(
             )
         })?;
 
-    let spread_percentage = 10 as u128; // 1.0% spread
+    let spread_percentage = 100 as u128; // 1.00% spread
     let satoshis_with_spread = calculate_satoshis_for_usd_with_spread(usd_amount, btc_price_usd_cents, spread_percentage);
 
     Ok(Json(QuoteResponse {
@@ -88,7 +88,7 @@ pub async fn get_quote(
         from_amount: satoshis_with_spread.to_string(), // Amount in satoshis the user needs to pay
         to_amount: query.to_amount,                    // USD amount the user wants to pay
         unit_price: format_money_amount(btc_price_usd_cents), // Price per BTC in USD (without spread)
-        spread: format!("{:.2}%", spread_percentage/10),                     // Spread percentage
+        spread: format!("{:.2}%", spread_percentage as f64 / 100.0),                     // Spread percentage
         refreshed_at: Utc::now(),
     }))
 }

@@ -281,6 +281,10 @@ components:
           type: string
           description: Price per BTC in USD (including spread).
           example: "65000.00"
+        spread:
+          type: string
+          description: Spread percentage applied to the quote.
+          example: "1.00%"
         refreshed_at:
           type: string
           format: date-time
