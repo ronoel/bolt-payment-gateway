@@ -77,8 +77,23 @@ pub async fn get_invoice(
     State(app_state): State<AppState>,
     Path(invoice_id): Path<String>,
 ) -> Result<Json<InvoiceResponse>, (StatusCode, Json<ErrorResponse>)> {
+
+    // convert the string ID to ObjectId
+    let object_id = match ObjectId::parse_str(&invoice_id) {
+        Ok(id) => id,
+        Err(_) => {
+            return Err((
+                StatusCode::BAD_REQUEST,
+                Json(ErrorResponse {
+                    error: "invalid_invoice_id".to_string(),
+                    message: "Invalid invoice ID format".to_string(),
+                }),
+            ));
+        }
+    };
+
     // Try to find the invoice in the database
-    match app_state.invoice_repository.find_by_id(&invoice_id).await {
+    match app_state.invoice_repository.find_by_id(&object_id).await {
         Ok(Some(invoice)) => {
             tracing::info!("Retrieved invoice {} from database", invoice_id);
             Ok(Json(InvoiceResponse::from(invoice)))

@@ -21,8 +21,8 @@ impl InvoiceRepository {
         Ok(())
     }
 
-    pub async fn find_by_id(&self, invoice_id: &str) -> Result<Option<Invoice>> {
-        let filter = doc! { "invoice_id": invoice_id };
+    pub async fn find_by_id(&self, invoice_id: &bson::oid::ObjectId) -> Result<Option<Invoice>> {
+        let filter = doc! { "_id": invoice_id };
         let result = self.collection.find_one(filter).await?;
         Ok(result)
     }
