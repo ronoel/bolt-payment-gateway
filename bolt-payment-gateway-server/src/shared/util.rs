@@ -25,5 +25,5 @@ pub fn calculate_satoshis_for_usd_with_spread(usd_cents: u128, btc_price_usd_cen
     let satoshis_needed = calculate_satoshis_for_usd(usd_cents, btc_price_usd_cents);
 
     // Add spread (making BTC slightly more expensive for the user)
-    satoshis_needed + (satoshis_needed * spread_percentage / 100)
+    satoshis_needed + (satoshis_needed * spread_percentage / 1000)
 }
