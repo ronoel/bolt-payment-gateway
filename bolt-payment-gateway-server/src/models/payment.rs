@@ -25,7 +25,21 @@ pub struct Payment {
     pub received_at: DateTime<Utc>,
 
     /// Transaction ID/hash on the underlying network.
-    pub tx_id: String,
+    pub tx_id: Option<String>,
+}
+
+impl Payment {
+    pub fn new(invoice_id: bson::oid::ObjectId, asset: PaymentToken, amount: u128) -> Self {
+        Self {
+            id: bson::oid::ObjectId::new(),
+            invoice_id,
+            status: PaymentStatus::Accepted,
+            asset,
+            amount,
+            received_at: Utc::now(),
+            tx_id: None,
+        }
+    }
 }
 
 /// `status`: ["accepted", "rejected", "confirmed"]
@@ -43,7 +57,7 @@ pub enum PaymentStatus {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum PaymentToken {
     #[serde(rename = "sBTC")]
-    SBtc,
+    SBTC,
     #[serde(rename = "USDT")]
-    Usdt,
+    USDT,
 }

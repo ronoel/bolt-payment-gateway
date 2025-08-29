@@ -1,17 +1,17 @@
 // src/handlers/payments.rs
 use axum::{
-    extract::Path,
+    extract::{Path, State},
     http::StatusCode,
     response::Json,
 };
-use chrono::Utc;
 
-use crate::models::{
-    convert_money_from_string, ErrorResponse, Payment, PaymentResponse, PaymentStatus, SubmitPaymentRequest
-};
+use crate::{models::{
+    convert_money_from_string, convert_string_to_object_id, ErrorResponse, Payment, PaymentResponse, SubmitPaymentRequest
+}, shared::calculate_satoshis_for_usd_with_spread, AppState};
 
 /// Submit a payment transaction for an invoice
 pub async fn submit_payment(
+    State(app_state): State<AppState>,
     Path(invoice_id): Path<String>,
     Json(request): Json<SubmitPaymentRequest>,
 ) -> Result<Json<PaymentResponse>, (StatusCode, Json<ErrorResponse>)> {
@@ -37,8 +37,31 @@ pub async fn submit_payment(
         ));
     }
 
-    // Simulate different scenarios based on invoice_id for testing
-    if invoice_id.contains("paid") {
+    let object_id = convert_string_to_object_id(&invoice_id)?;
+
+    let invoice = match app_state.invoice_repository.find_by_id(&object_id).await {
+        Ok(Some(invoice)) => invoice,
+        Ok(None) => {
+            return Err((
+                StatusCode::NOT_FOUND,
+                Json(ErrorResponse {
+                    error: "invoice_not_found".to_string(),
+                    message: "Invoice not found".to_string(),
+                }),
+            ));
+        }
+        Err(_) => {
+            return Err((
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ErrorResponse {
+                    error: "database_error".to_string(),
+                    message: "Failed to retrieve invoice".to_string(),
+                }),
+            ));
+        }
+    };
+
+    if invoice.status == crate::models::InvoiceStatus::Paid || invoice.status == crate::models::InvoiceStatus::Settled {
         return Err((
             StatusCode::CONFLICT,
             Json(ErrorResponse {
@@ -48,12 +71,12 @@ pub async fn submit_payment(
         ));
     }
 
-    if invoice_id.contains("expired") {
+    if invoice.status == crate::models::InvoiceStatus::Expired {
         return Err((
             StatusCode::CONFLICT,
             Json(ErrorResponse {
                 error: "invoice_expired".to_string(),
-                message: "Invoice has expired and cannot accept payments".to_string(),
+                message: "Invoice has expired".to_string(),
             }),
         ));
     }
@@ -70,29 +93,59 @@ pub async fn submit_payment(
         ));
     }
 
-    // Create mock payment
-    let payment = Payment {
-        id: bson::oid::ObjectId::new(),
-        invoice_id: bson::oid::ObjectId::new(),
-        status: PaymentStatus::Confirmed,
-        asset: request.asset,
-        amount: convert_money_from_string(request.amount).map_err(|_| {
+    let amount = request.amount.parse::<u128>().map_err(|_| {
+        (
+            StatusCode::BAD_REQUEST,
+            Json(ErrorResponse {
+                error: "invalid_amount_format".to_string(),
+                message: "Amount format is invalid".to_string(),
+            }),
+        )
+    })?;
+
+
+    // Get quote
+    // Get Bitcoin price from QuoteService
+    let btc_price_usd_cents = app_state
+        .quote_service
+        .get_bitcoin_price()
+        .await
+        .map_err(|e| {
+            tracing::error!("Failed to get Bitcoin price: {}", e);
             (
-                StatusCode::BAD_REQUEST,
+                StatusCode::INTERNAL_SERVER_ERROR,
                 Json(ErrorResponse {
-                    error: "invalid_amount_format".to_string(),
-                    message: "Amount format is invalid".to_string(),
+                    error: "price_fetch_error".to_string(),
+                    message: "Failed to fetch current Bitcoin price".to_string(),
                 }),
             )
-        })?,
-        received_at: Utc::now(),
-        tx_id: format!("0xbolt{}", &request.serialized_transaction[..8]),
-    };
+        })?;
+
+    let spread_percentage = 50 as u128; // 0.50% minimal spread accepted
+    let satoshis_with_spread = calculate_satoshis_for_usd_with_spread(invoice.amount, btc_price_usd_cents, spread_percentage);
+
+    tracing::info!("Calculated satoshis with spread: {}", satoshis_with_spread);
+    tracing::info!("Payment amount in satoshis: {}", amount);
+
+    if amount < satoshis_with_spread {
+        return Err((
+            StatusCode::PRECONDITION_FAILED,
+            Json(ErrorResponse {
+                error: "underpayment_detected".to_string(),
+                message: format!("Payment amount is below the required minimum of {} satoshis", satoshis_with_spread),
+            }),
+        ));
+    }
+
+
+    let payment: Payment = Payment::new(invoice.id, request.asset, amount);
+
+    
 
     tracing::info!(
         "Payment {} submitted for invoice {} with amount {} {:?}",
         payment.id,
-        invoice_id,
+        payment.invoice_id,
         payment.amount,
         payment.asset
     );
