@@ -21,6 +21,9 @@ pub struct Payment {
     /// Actual amount processed in this payment.
     pub amount: u128,
 
+    /// Address of the sender making the payment.
+    pub sender_address: Option<String>,
+
     /// Timestamp when the payment was received (RFC3339).
     pub received_at: DateTime<Utc>,
 
@@ -36,6 +39,7 @@ impl Payment {
             status: PaymentStatus::Accepted,
             asset,
             amount,
+            sender_address: None,
             received_at: Utc::now(),
             tx_id: None,
         }

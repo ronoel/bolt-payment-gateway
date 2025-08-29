@@ -350,6 +350,10 @@ components:
           type: string
           description: Actual amount processed in this payment.
           example: "0.002345"
+        sender_address:
+          type: string
+          description: Address of the sender making the payment.
+          example: "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
         received_at:
           type: string
           format: date-time

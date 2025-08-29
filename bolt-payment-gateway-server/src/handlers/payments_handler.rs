@@ -140,7 +140,10 @@ pub async fn submit_payment(
 
     let payment: Payment = Payment::new(invoice.id, request.asset, amount);
 
-    
+    // NEXT: 
+    // 1 - Save payment to database (create the index to not allow duplicate payments)
+    // 2 - Broadcast the transaction validating it. (receive the transaction ID and sender address)
+
 
     tracing::info!(
         "Payment {} submitted for invoice {} with amount {} {:?}",

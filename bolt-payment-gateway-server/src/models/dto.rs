@@ -68,6 +68,7 @@ pub struct PaymentResponse {
     pub status: PaymentStatus,
     pub asset: PaymentToken,
     pub amount: String,
+    pub sender_address: Option<String>,
     pub received_at: DateTime<Utc>,
     pub tx_id: Option<String>,
 }
@@ -81,6 +82,7 @@ impl From<Payment> for PaymentResponse {
             asset: payment.asset,
             // amount: format_money_amount(payment.amount), // if this is in USD
             amount: payment.amount.to_string(),
+            sender_address: payment.sender_address,
             received_at: payment.received_at,
             tx_id: payment.tx_id,
         }
