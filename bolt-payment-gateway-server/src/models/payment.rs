@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 #[serde(deny_unknown_fields)]
 pub struct Payment {
     /// Unique identifier of the payment attempt.
+    #[serde(rename = "_id")]
     pub id: bson::oid::ObjectId,
 
     /// Invoice ID associated with this payment.
@@ -19,6 +20,7 @@ pub struct Payment {
     pub asset: PaymentToken,
 
     /// Actual amount processed in this payment.
+    #[serde(with = "u128_as_i64")]
     pub amount: u128,
 
     /// Address of the sender making the payment.
@@ -64,4 +66,29 @@ pub enum PaymentToken {
     SBTC,
     #[serde(rename = "USDT")]
     USDT,
+}
+
+// Custom serialization/deserialization for u128 as i64 for MongoDB compatibility
+mod u128_as_i64 {
+    use serde::{Deserialize, Deserializer, Serialize, Serializer};
+
+    pub fn serialize<S>(value: &u128, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let i64_value = i64::try_from(*value)
+            .map_err(|_| serde::ser::Error::custom("Value too large for i64"))?;
+        i64_value.serialize(serializer)
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<u128, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let i64_value = i64::deserialize(deserializer)?;
+        if i64_value < 0 {
+            return Err(serde::de::Error::custom("Negative values not allowed"));
+        }
+        Ok(i64_value as u128)
+    }
 }

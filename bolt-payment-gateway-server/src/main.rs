@@ -12,12 +12,13 @@ use tower_http::{cors::CorsLayer, trace::TraceLayer};
 use tracing_subscriber;
 use std::env;
 
-use database::{MongoDBClient, InvoiceRepository};
+use database::{MongoDBClient, InvoiceRepository, PaymentRepository};
 use services::quote_service::QuoteService;
 
 #[derive(Clone)]
 pub struct AppState {
     pub invoice_repository: InvoiceRepository,
+    pub payment_repository: PaymentRepository,
     pub quote_service: QuoteService,
 }
 
@@ -40,6 +41,13 @@ async fn main() {
 
     // Initialize repositories
     let invoice_repository = InvoiceRepository::new(mongodb_client.get_database());
+    let payment_repository = PaymentRepository::new(mongodb_client.get_database());
+
+    // Create indexes for payments
+    if let Err(e) = payment_repository.create_indexes().await {
+        eprintln!("Failed to create payment indexes: {}", e);
+        std::process::exit(1);
+    }
 
     // Initialize services
     let quote_service = QuoteService::new();
@@ -47,6 +55,7 @@ async fn main() {
     // Create application state
     let app_state = AppState {
         invoice_repository,
+        payment_repository,
         quote_service,
     };
 

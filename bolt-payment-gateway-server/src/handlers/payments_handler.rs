@@ -140,9 +140,30 @@ pub async fn submit_payment(
 
     let payment: Payment = Payment::new(invoice.id, request.asset, amount);
 
+    // Save payment to database with constraint checking
+    if let Err(error_msg) = app_state.payment_repository.create(&payment).await {
+        if error_msg.to_string().contains("duplicate key") || error_msg.to_string().contains("E11000") {
+            return Err((
+                StatusCode::CONFLICT,
+                Json(ErrorResponse {
+                    error: "payment_already_exists".to_string(),
+                    message: "Payment already exists or being processed".to_string(),
+                }),
+            ));
+        } else {
+            tracing::error!("Failed to save payment: {}", error_msg);
+            return Err((
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ErrorResponse {
+                    error: "database_error".to_string(),
+                    message: "Failed to save payment".to_string(),
+                }),
+            ));
+        }
+    }
+
     // NEXT: 
-    // 1 - Save payment to database (create the index to not allow duplicate payments)
-    // 2 - Broadcast the transaction validating it. (receive the transaction ID and sender address)
+    // 1 - Broadcast the transaction validating it. (receive the transaction ID and sender address)
 
 
     tracing::info!(
