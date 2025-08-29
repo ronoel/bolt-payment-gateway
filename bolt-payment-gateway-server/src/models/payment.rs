@@ -7,10 +7,10 @@ use serde::{Deserialize, Serialize};
 #[serde(deny_unknown_fields)]
 pub struct Payment {
     /// Unique identifier of the payment attempt.
-    pub payment_id: String,
+    pub id: bson::oid::ObjectId,
 
     /// Invoice ID associated with this payment.
-    pub invoice_id: String,
+    pub invoice_id: bson::oid::ObjectId,
 
     /// Current status of the payment.
     pub status: PaymentStatus,

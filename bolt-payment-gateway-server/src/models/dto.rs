@@ -63,7 +63,7 @@ impl From<Invoice> for InvoiceResponse {
 
 #[derive(Debug, Serialize)]
 pub struct PaymentResponse {
-    pub payment_id: String,
+    pub id: String,
     pub invoice_id: String,
     pub status: PaymentStatus,
     pub asset: PaymentToken,
@@ -75,8 +75,8 @@ pub struct PaymentResponse {
 impl From<Payment> for PaymentResponse {
     fn from(payment: Payment) -> Self {
         Self {
-            payment_id: payment.payment_id,
-            invoice_id: payment.invoice_id,
+            id: payment.id.to_string(),
+            invoice_id: payment.invoice_id.to_string(),
             status: payment.status,
             asset: payment.asset,
             amount: format_money_amount(payment.amount),

@@ -5,7 +5,6 @@ use axum::{
     response::Json,
 };
 use chrono::Utc;
-use uuid::Uuid;
 
 use crate::models::{
     convert_money_from_string, ErrorResponse, Payment, PaymentResponse, PaymentStatus, SubmitPaymentRequest
@@ -73,9 +72,9 @@ pub async fn submit_payment(
 
     // Create mock payment
     let payment = Payment {
-        payment_id: format!("pay_{}", Uuid::new_v4().to_string().split('-').next().unwrap()),
-        invoice_id: invoice_id.clone(),
-        status: PaymentStatus::Accepted,
+        id: bson::oid::ObjectId::new(),
+        invoice_id: bson::oid::ObjectId::new(),
+        status: PaymentStatus::Confirmed,
         asset: request.asset,
         amount: convert_money_from_string(request.amount).map_err(|_| {
             (
@@ -92,7 +91,7 @@ pub async fn submit_payment(
 
     tracing::info!(
         "Payment {} submitted for invoice {} with amount {} {:?}",
-        payment.payment_id,
+        payment.id,
         invoice_id,
         payment.amount,
         payment.asset
