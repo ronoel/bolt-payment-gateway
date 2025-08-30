@@ -14,12 +14,14 @@ use std::env;
 
 use database::{MongoDBClient, InvoiceRepository, PaymentRepository};
 use services::quote_service::QuoteService;
+use services::bolt_protocol_service::BoltProtocolService;
 
 #[derive(Clone)]
 pub struct AppState {
     pub invoice_repository: InvoiceRepository,
     pub payment_repository: PaymentRepository,
     pub quote_service: QuoteService,
+    pub bolt_protocol_service: BoltProtocolService,
 }
 
 #[tokio::main]
@@ -51,12 +53,14 @@ async fn main() {
 
     // Initialize services
     let quote_service = QuoteService::new();
+    let bolt_protocol_service = BoltProtocolService::new();
 
     // Create application state
     let app_state = AppState {
         invoice_repository,
         payment_repository,
         quote_service,
+        bolt_protocol_service,
     };
 
     // Build our application with routes

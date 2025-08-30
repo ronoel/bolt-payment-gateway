@@ -6,7 +6,7 @@ use axum::{
 };
 
 use crate::{models::{
-    convert_string_to_object_id, ErrorResponse, Payment, PaymentResponse, SubmitPaymentRequest
+    convert_string_to_object_id, ErrorResponse, Payment, PaymentResponse, SubmitPaymentRequest,
 }, shared::calculate_satoshis_for_usd_with_spread, AppState};
 
 /// Submit a payment transaction for an invoice
