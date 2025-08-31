@@ -52,7 +52,17 @@ paths:
               schema:
                 $ref: '#/components/schemas/Invoice'
         '400':
-          description: Invalid amount
+          description: Invalid amount or format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
     get:
       summary: List and search merchant invoices
@@ -150,6 +160,16 @@ paths:
                     example: 0
         '400':
           description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /invoices/{invoice_id}:
     get:
@@ -171,6 +191,16 @@ paths:
                 $ref: '#/components/schemas/Invoice'
         '404':
           description: Invoice not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /invoices/{invoice_id}/payments/submit:
     post:
@@ -210,10 +240,36 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaymentResult'
+        '404':
+          description: Invoice not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '409':
           description: Invoice already paid or expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '412':
+          description: Underpayment detected (precondition failed)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '422':
-          description: Underpayment detected at submission
+          description: Invalid amount or transaction format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error or transaction broadcast failure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /quotes:
     get:
@@ -254,10 +310,33 @@ paths:
               schema:
                 $ref: '#/components/schemas/Quote'
         '400':
-          description: Invalid request parameters
+          description: Invalid request parameters or unsupported assets
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to fetch Bitcoin price
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
 components:
   schemas:
+    ErrorResponse:
+      type: object
+      required: [error, message]
+      properties:
+        error:
+          type: string
+          description: Error code identifying the type of error.
+          example: "invalid_amount"
+        message:
+          type: string
+          description: Human-readable error message.
+          example: "Amount must be a positive number"
+
     Quote:
       type: object
       properties:
@@ -354,6 +433,7 @@ components:
           type: string
           description: Address of the sender making the payment.
           example: "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
+          nullable: true
         received_at:
           type: string
           format: date-time
@@ -363,3 +443,4 @@ components:
           type: string
           description: Transaction ID/hash on the underlying network.
           example: "0xbolt123abc..."
+          nullable: true
