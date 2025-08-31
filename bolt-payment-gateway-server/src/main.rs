@@ -77,8 +77,8 @@ async fn main() {
         );
 
     // Run the server
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
-    println!("🚀 Server running on http://0.0.0.0:3000");
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:4000").await.unwrap();
+    println!("🚀 Server running on http://0.0.0.0:4000");
     println!("📊 Connected to MongoDB at: {}", mongodb_uri);
     
     axum::serve(listener, app).await.unwrap();

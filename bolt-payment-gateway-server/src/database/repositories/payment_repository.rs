@@ -82,6 +82,17 @@ impl PaymentRepository {
         Ok(result)
     }
 
+    pub async fn confirm(&self, payment_id: &bson::oid::ObjectId, tx_id: &str) -> Result<bool> {
+        let filter = doc! { "_id": payment_id };
+        let update = doc! { "$set": { 
+            "tx_id": tx_id, 
+            "status": bson::to_bson(&PaymentStatus::Confirmed)? 
+        } };
+
+        let result = self.collection.update_one(filter, update).await?;
+        Ok(result.modified_count > 0)
+    }
+
     pub async fn update_status(&self, payment_id: &bson::oid::ObjectId, status: PaymentStatus) -> Result<bool> {
         let filter = doc! { "_id": payment_id };
         let update = doc! { "$set": { "status": bson::to_bson(&status)? } };
@@ -90,13 +101,13 @@ impl PaymentRepository {
         Ok(result.modified_count > 0)
     }
 
-    pub async fn update_tx_id(&self, payment_id: &bson::oid::ObjectId, tx_id: &str) -> Result<bool> {
-        let filter = doc! { "_id": payment_id };
-        let update = doc! { "$set": { "tx_id": tx_id } };
+    // pub async fn update_tx_id(&self, payment_id: &bson::oid::ObjectId, tx_id: &str) -> Result<bool> {
+    //     let filter = doc! { "_id": payment_id };
+    //     let update = doc! { "$set": { "tx_id": tx_id } };
         
-        let result = self.collection.update_one(filter, update).await?;
-        Ok(result.modified_count > 0)
-    }
+    //     let result = self.collection.update_one(filter, update).await?;
+    //     Ok(result.modified_count > 0)
+    // }
 
     pub async fn find_by_status(&self, status: PaymentStatus) -> Result<Vec<Payment>> {
         let filter = doc! { "status": bson::to_bson(&status)? };

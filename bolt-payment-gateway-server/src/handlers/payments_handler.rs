@@ -6,7 +6,7 @@ use axum::{
 };
 
 use crate::{models::{
-    convert_string_to_object_id, ErrorResponse, Payment, PaymentResponse, SubmitPaymentRequest,
+    convert_string_to_object_id, ErrorResponse, Payment, PaymentResponse, PaymentStatus, SubmitPaymentRequest,
 }, shared::calculate_satoshis_for_usd_with_spread, AppState};
 
 /// Submit a payment transaction for an invoice
@@ -164,13 +164,44 @@ pub async fn submit_payment(
 
     // NEXT: 
     // 1 - Broadcast the transaction validating it. (receive the transaction ID and sender address)
+    let response = app_state.bolt_protocol_service.broadcast_transaction(
+        request.serialized_transaction, 
+        amount, 
+        "AKLDHF".to_string()
+    ).await;
+    
+    let bolt_response = match response {
+        Ok(res) => res,
+        Err(e) => {
+            tracing::error!("Failed to broadcast transaction: {:?}", e);
+            
+            // Update payment status to Rejected
+            if let Err(update_err) = app_state.payment_repository.update_status(&payment.id, PaymentStatus::Rejected).await {
+                tracing::error!("Failed to update payment status to Rejected: {}", update_err);
+            }
+            
+            return Err((
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ErrorResponse {
+                    error: "transaction_broadcast_error".to_string(),
+                    message: "Failed to broadcast transaction".to_string(),
+                }),
+            ));
+        }
+    };
+
+    // Update payment status to Confirmed with transaction details since the transaction was successfully broadcast
+    if let Err(update_err) = app_state.payment_repository.confirm(&payment.id, &bolt_response.txid).await {
+        tracing::error!("Failed to update payment tx_id: {}", update_err);
+    }
 
 
     tracing::info!(
-        "Payment {} submitted for invoice {} with amount {} {:?}",
+        "Payment {} submitted for invoice {} with amount {} and tx_id {} {:?}",
         payment.id,
         payment.invoice_id,
         payment.amount,
+        bolt_response.txid,
         payment.asset
     );
 
