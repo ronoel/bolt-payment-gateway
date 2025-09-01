@@ -1,0 +1,67 @@
+import { Injectable } from '@angular/core';
+import { Subject } from 'rxjs';
+
+export interface ToastMessage {
+  id: string;
+  type: 'success' | 'error' | 'info' | 'warning';
+  title: string;
+  message?: string;
+  duration?: number;
+  action?: {
+    label: string;
+    handler: () => void;
+  };
+}
+
+@Injectable({
+  providedIn: 'root'
+})
+export class ToastService {
+  private toastSubject = new Subject<ToastMessage>();
+  private dismissSubject = new Subject<string>();
+
+  toasts$ = this.toastSubject.asObservable();
+  dismiss$ = this.dismissSubject.asObservable();
+
+  show(toast: Omit<ToastMessage, 'id'>): string {
+    const id = this.generateId();
+    const fullToast: ToastMessage = {
+      id,
+      duration: 5000,
+      ...toast
+    };
+    
+    this.toastSubject.next(fullToast);
+    
+    // Auto dismiss after duration
+    if (fullToast.duration && fullToast.duration > 0) {
+      setTimeout(() => this.dismiss(id), fullToast.duration);
+    }
+    
+    return id;
+  }
+
+  success(title: string, message?: string, duration?: number): string {
+    return this.show({ type: 'success', title, message, duration });
+  }
+
+  error(title: string, message?: string, duration?: number): string {
+    return this.show({ type: 'error', title, message, duration });
+  }
+
+  info(title: string, message?: string, duration?: number): string {
+    return this.show({ type: 'info', title, message, duration });
+  }
+
+  warning(title: string, message?: string, duration?: number): string {
+    return this.show({ type: 'warning', title, message, duration });
+  }
+
+  dismiss(id: string): void {
+    this.dismissSubject.next(id);
+  }
+
+  private generateId(): string {
+    return Math.random().toString(36).substr(2, 9);
+  }
+}
