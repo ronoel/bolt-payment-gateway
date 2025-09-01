@@ -27,8 +27,8 @@ export class ToastService {
     const id = this.generateId();
     const fullToast: ToastMessage = {
       id,
-      duration: 5000,
-      ...toast
+      ...toast,
+      duration: toast.duration ?? 5000
     };
     
     // Add toast to the signal array
@@ -36,7 +36,9 @@ export class ToastService {
     
     // Auto dismiss after duration
     if (fullToast.duration && fullToast.duration > 0) {
-      setTimeout(() => this.dismiss(id), fullToast.duration);
+      setTimeout(() => {
+        this.dismiss(id);
+      }, fullToast.duration);
     }
     
     return id;
@@ -59,6 +61,7 @@ export class ToastService {
   }
 
   dismiss(id: string): void {
+    console.log(`Dismissing toast ${id}`);
     this.toastsSignal.update(toasts => toasts.filter(toast => toast.id !== id));
   }
 
