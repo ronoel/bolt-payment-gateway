@@ -8,6 +8,7 @@ export const environment = {
     // blockchainAPIUrl: 'http://localhost:3999',
     blockchainAPIUrl: 'https://api.testnet.hiro.so',
     boltProtocol: {
+        apiUrl: 'http://localhost:3000/api/v1',
         contractAddress: 'ST3QZNX3CGT6V7PE1PBK17FCRK1TP1AT02W1N0YJF',
         contractName: 'boltproto-sbtc-rc-2-0-0'
     },

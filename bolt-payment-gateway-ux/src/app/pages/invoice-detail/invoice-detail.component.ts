@@ -2,7 +2,7 @@ import { Component, inject, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute } from '@angular/router';
 import { Subject, takeUntil, interval, switchMap, of } from 'rxjs';
-import { GatewayService, Invoice, Quote } from '../../services/gateway.service';
+import { GatewayService, Invoice } from '../../services/gateway.service';
 import { ToastService } from '../../services/toast.service';
 import { StatusPillComponent } from '../../components/status-pill/status-pill.component';
 import { SharePanelComponent } from '../../components/share-panel/share-panel.component';
@@ -152,31 +152,6 @@ import { SharePanelComponent } from '../../components/share-panel/share-panel.co
                   <div class="activity-card">
                     <h2>Live Activity</h2>
                     
-                    <!-- Current Quote -->
-                    @if (quote()) {
-                      <div class="quote-section">
-                        <h3>Current Quote</h3>
-                        <div class="quote-info">
-                          <div class="quote-row">
-                            <span class="label">Required Sats:</span>
-                            <span class="value sats">{{ formatSats(quote()!.from_amount) }}</span>
-                          </div>
-                          <div class="quote-row">
-                            <span class="label">BTC/USD Rate:</span>
-                            <span class="value">\${{ formatPrice(quote()!.unit_price) }}</span>
-                          </div>
-                          <div class="quote-row">
-                            <span class="label">Spread:</span>
-                            <span class="value">{{ formatSpread(quote()!.spread) }}%</span>
-                          </div>
-                          <div class="quote-row">
-                            <span class="label">Last Updated:</span>
-                            <span class="value">{{ formatTime(quote()!.refreshed_at) }}</span>
-                          </div>
-                        </div>
-                      </div>
-                    }
-
                     <!-- Payment Status -->
                     <div class="payment-section">
                       <h3>Payment Status</h3>
@@ -527,40 +502,6 @@ import { SharePanelComponent } from '../../components/share-panel/share-panel.co
       cursor: pointer;
     }
 
-    /* Quote Section */
-    .quote-section {
-      margin-bottom: 24px;
-    }
-
-    .quote-section h3 {
-      margin: 0 0 16px 0;
-      color: #111827;
-      font-size: 16px;
-      font-weight: 600;
-    }
-
-    .quote-info {
-      background: #f9fafb;
-      border-radius: 8px;
-      padding: 16px;
-    }
-
-    .quote-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-    }
-
-    .quote-row:last-child {
-      margin-bottom: 0;
-    }
-
-    .value.sats {
-      font-family: monospace;
-      color: #f97316;
-    }
-
     /* Payment Timeline */
     .payment-section h3 {
       margin: 0 0 16px 0;
@@ -667,7 +608,6 @@ export class InvoiceDetailComponent implements OnInit, OnDestroy {
   loading = signal(false);
   error = signal<string | null>(null);
   invoice = signal<Invoice | null>(null);
-  quote = signal<Quote | null>(null);
   autoRefresh = signal(true);
 
   private invoiceId = '';
@@ -695,29 +635,12 @@ export class InvoiceDetailComponent implements OnInit, OnDestroy {
         next: (invoice) => {
           this.invoice.set(invoice);
           this.loading.set(false);
-          this.loadQuote(invoice);
         },
         error: (error) => {
           this.error.set(error.message || 'Failed to load invoice');
           this.loading.set(false);
         }
       });
-  }
-
-  private loadQuote(invoice: Invoice) {
-    // Only load quote for created invoices
-    if (invoice.status === 'created') {
-      this.gatewayService.getQuote({
-        from: 'BTC',
-        to: invoice.settlement_asset,
-        to_amount: invoice.amount
-      })
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (quote) => this.quote.set(quote),
-        error: (error) => console.warn('Failed to load quote:', error)
-      });
-    }
   }
 
   private startAutoRefresh() {
@@ -746,8 +669,7 @@ export class InvoiceDetailComponent implements OnInit, OnDestroy {
               }
             }
             
-            // Reload quote if still created
-            this.loadQuote(invoice);
+            // Don't reload quote during refresh
           }
         },
         error: (error) => console.warn('Auto-refresh failed:', error)
