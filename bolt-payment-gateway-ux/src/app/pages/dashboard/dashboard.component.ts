@@ -1,7 +1,6 @@
-import { Component, inject, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { Subject, takeUntil } from 'rxjs';
+import { Router, RouterModule } from '@angular/router';
 import { WalletService } from '../../services/wallet.service';
 import { GatewayService, ListInvoicesParams, Invoice } from '../../services/gateway.service';
 import { ToastService } from '../../services/toast.service';
@@ -434,11 +433,11 @@ import { InvoiceTableComponent } from '../../components/invoice-table/invoice-ta
     }
   `]
 })
-export class DashboardComponent implements OnInit, OnDestroy {
+export class DashboardComponent implements OnInit {
+  private router = inject(Router);
   private walletService = inject(WalletService);
   private gatewayService = inject(GatewayService);
   private toastService = inject(ToastService);
-  private destroy$ = new Subject<void>();
 
   // Signals
   loading = signal(false);
@@ -462,11 +461,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.loadInvoices();
   }
 
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
   loadInvoices() {
     const walletAddress = this.walletService.getSTXAddress();
     if (!walletAddress) {
@@ -484,7 +478,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
     };
 
     this.gatewayService.listInvoices(walletAddress, params)
-      .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
           this.invoices.set(response.items);

@@ -1,8 +1,7 @@
-import { Component, inject, signal, OnDestroy } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { Subject, takeUntil } from 'rxjs';
 import { WalletService } from '../../services/wallet.service';
 import { GatewayService, Invoice } from '../../services/gateway.service';
 import { ToastService } from '../../services/toast.service';
@@ -421,12 +420,11 @@ import { SharePanelComponent } from '../../components/share-panel/share-panel.co
     }
   `]
 })
-export class NewInvoiceComponent implements OnDestroy {
+export class NewInvoiceComponent {
   private walletService = inject(WalletService);
   private gatewayService = inject(GatewayService);
   private toastService = inject(ToastService);
   private router = inject(Router);
-  private destroy$ = new Subject<void>();
 
   // Form state
   amount = signal('0.00');
@@ -436,11 +434,6 @@ export class NewInvoiceComponent implements OnDestroy {
   // UI state
   creating = signal(false);
   createdInvoice = signal<Invoice | null>(null);
-
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
 
   onAmountChange(newAmount: string) {
     this.amount.set(newAmount);
@@ -476,7 +469,6 @@ export class NewInvoiceComponent implements OnDestroy {
     };
 
     this.gatewayService.createInvoice(walletAddress, request)
-      .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (invoice) => {
           this.createdInvoice.set(invoice);
