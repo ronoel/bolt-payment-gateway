@@ -1,6 +1,5 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Subject, takeUntil } from 'rxjs';
 import { ToastService, ToastMessage } from '../../services/toast.service';
 
 @Component({
@@ -9,7 +8,7 @@ import { ToastService, ToastMessage } from '../../services/toast.service';
   imports: [CommonModule],
   template: `
     <div class="toast-container">
-      @for (toast of toasts; track toast.id) {
+      @for (toast of toastService.toasts(); track toast.id) {
         <div 
           class="toast"
           [ngClass]="toast.type">
@@ -187,30 +186,8 @@ import { ToastService, ToastMessage } from '../../services/toast.service';
     }
   `]
 })
-export class ToastComponent implements OnInit, OnDestroy {
-  toasts: ToastMessage[] = [];
-  private destroy$ = new Subject<void>();
-
-  constructor(private toastService: ToastService) {}
-
-  ngOnInit() {
-    this.toastService.toasts$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(toast => {
-        this.toasts.push(toast);
-      });
-
-    this.toastService.dismiss$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(id => {
-        this.toasts = this.toasts.filter(toast => toast.id !== id);
-      });
-  }
-
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
+export class ToastComponent {
+  constructor(public toastService: ToastService) {}
 
   dismiss(id: string) {
     this.toastService.dismiss(id);

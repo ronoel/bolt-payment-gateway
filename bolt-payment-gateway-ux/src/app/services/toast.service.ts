@@ -1,5 +1,4 @@
-import { Injectable } from '@angular/core';
-import { Subject } from 'rxjs';
+import { Injectable, signal } from '@angular/core';
 
 export interface ToastMessage {
   id: string;
@@ -17,11 +16,12 @@ export interface ToastMessage {
   providedIn: 'root'
 })
 export class ToastService {
-  private toastSubject = new Subject<ToastMessage>();
-  private dismissSubject = new Subject<string>();
+  private toastsSignal = signal<ToastMessage[]>([]);
+  
+  // Expose as readonly signal
+  toasts = this.toastsSignal.asReadonly();
 
-  toasts$ = this.toastSubject.asObservable();
-  dismiss$ = this.dismissSubject.asObservable();
+  constructor() {}
 
   show(toast: Omit<ToastMessage, 'id'>): string {
     const id = this.generateId();
@@ -31,10 +31,8 @@ export class ToastService {
       ...toast
     };
     
-    // Defer toast emission to avoid change detection conflicts
-    setTimeout(() => {
-      this.toastSubject.next(fullToast);
-    }, 0);
+    // Add toast to the signal array
+    this.toastsSignal.update(toasts => [...toasts, fullToast]);
     
     // Auto dismiss after duration
     if (fullToast.duration && fullToast.duration > 0) {
@@ -61,7 +59,7 @@ export class ToastService {
   }
 
   dismiss(id: string): void {
-    this.dismissSubject.next(id);
+    this.toastsSignal.update(toasts => toasts.filter(toast => toast.id !== id));
   }
 
   private generateId(): string {
