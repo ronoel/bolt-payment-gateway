@@ -168,23 +168,14 @@ export class GatewayService {
     }
 
     return this.http.get<ListInvoicesResponse>(url, { params: httpParams }).pipe(
-      map(response => {
-        console.log('Gateway: Raw API response:', response);
-        const mappedResponse = {
-          ...response,
-          items: response.items.map((invoice: any) => {
-            const mappedInvoice = {
-              ...invoice,
-              invoice_id: invoice.id || invoice.invoice_id, // Map 'id' to 'invoice_id'
-              checkout_url: `${this.frontendUrl}/pay/${invoice.id || invoice.invoice_id}`
-            };
-            console.log('Gateway: Mapped invoice:', mappedInvoice);
-            return mappedInvoice;
-          })
-        };
-        console.log('Gateway: Final mapped response:', mappedResponse);
-        return mappedResponse;
-      }),
+      map(response => ({
+        ...response,
+        items: response.items.map((invoice: any) => ({
+          ...invoice,
+          invoice_id: invoice.id || invoice.invoice_id, // Map 'id' to 'invoice_id'
+          checkout_url: `${this.frontendUrl}/pay/${invoice.id || invoice.invoice_id}`
+        }))
+      })),
       catchError(this.handleError)
     );
   }

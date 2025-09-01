@@ -31,7 +31,10 @@ export class ToastService {
       ...toast
     };
     
-    this.toastSubject.next(fullToast);
+    // Defer toast emission to avoid change detection conflicts
+    setTimeout(() => {
+      this.toastSubject.next(fullToast);
+    }, 0);
     
     // Auto dismiss after duration
     if (fullToast.duration && fullToast.duration > 0) {
