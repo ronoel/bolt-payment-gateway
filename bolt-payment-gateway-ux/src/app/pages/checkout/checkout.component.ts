@@ -196,6 +196,63 @@ import { QuoteCardComponent } from '../../components/quote-card/quote-card.compo
                             <span class="wallet-address">{{ getShortAddress() }}</span>
                             <span class="connected-badge">Connected</span>
                           </div>
+
+                          <!-- Wallet Balance Display -->
+                          <div class="balance-section">
+                            <div class="balance-header">
+                              <h4>Wallet Balance</h4>
+                              <button 
+                                class="refresh-balance-btn"
+                                (click)="checkBalance()"
+                                [disabled]="balanceLoading()"
+                                title="Refresh balance">
+                                @if (balanceLoading()) {
+                                  ⏳
+                                } @else {
+                                  🔄
+                                }
+                              </button>
+                            </div>
+                            <div class="balance-info">
+                              @if (balanceLoading()) {
+                                <div class="balance-loading">
+                                  <div class="spinner small"></div>
+                                  <span>Loading balance...</span>
+                                </div>
+                              } @else {
+                                <div class="balance-display">
+                                  <div class="balance-row">
+                                    <span class="balance-label">sBTC Balance:</span>
+                                    <span class="balance-value">{{ getBalanceDisplaySats() }} sats</span>
+                                  </div>
+                                  @if (quote()) {
+                                    <div class="balance-row">
+                                      <span class="balance-label">Required:</span>
+                                      <span class="balance-value required">{{ formatSats(quote()!.from_amount) }} sats</span>
+                                    </div>
+                                  }
+                                </div>
+                              }
+                            </div>
+                          </div>
+
+                          <!-- Insufficient Balance Warning -->
+                          @if (hasInsufficientBalance()) {
+                            <div class="insufficient-balance-warning">
+                              <div class="warning-icon">⚠️</div>
+                              <div class="warning-content">
+                                <h4>Insufficient Balance</h4>
+                                <p>You need {{ formatSats(quote()!.from_amount) }} sats but only have {{ getBalanceDisplaySats() }} sats available.</p>
+                                <p>Transfer your sBTC to Bolt Wallet to complete this payment.</p>
+                                <a 
+                                  href="https://boltproto.org/wallet" 
+                                  target="_blank" 
+                                  class="bolt-wallet-link">
+                                  Open Bolt Wallet →
+                                </a>
+                              </div>
+                            </div>
+                          }
                           
                           @if (paymentStatus() === 'processing') {
                             <div class="payment-processing">
@@ -218,8 +275,14 @@ import { QuoteCardComponent } from '../../components/quote-card/quote-card.compo
                             <button 
                               class="pay-btn"
                               (click)="initiatePayment()"
-                              [disabled]="!quote() || processing()">
-                              💰 Pay with sBTC
+                              [disabled]="!quote() || processing() || hasInsufficientBalance() || balanceLoading()">
+                              @if (hasInsufficientBalance()) {
+                                ⚠️ Insufficient Balance
+                              } @else if (balanceLoading()) {
+                                ⏳ Checking Balance...
+                              } @else {
+                                💰 Pay with sBTC
+                              }
                             </button>
                           }
                         </div>
@@ -587,6 +650,137 @@ import { QuoteCardComponent } from '../../components/quote-card/quote-card.compo
       font-weight: 600;
     }
 
+    /* Balance Section */
+    .balance-section {
+      margin: 20px 0;
+      padding: 16px;
+      background: #f9fafb;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .balance-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .balance-section h4 {
+      margin: 0;
+      color: #374151;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .refresh-balance-btn {
+      background: none;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      padding: 4px 8px;
+      cursor: pointer;
+      font-size: 12px;
+      color: #6b7280;
+      transition: all 0.2s;
+    }
+
+    .refresh-balance-btn:hover:not(:disabled) {
+      border-color: #9ca3af;
+      color: #374151;
+    }
+
+    .refresh-balance-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .balance-loading {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    .balance-display {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .balance-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .balance-label {
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    .balance-value {
+      font-family: monospace;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    .balance-value.required {
+      color: #f97316;
+    }
+
+    /* Insufficient Balance Warning */
+    .insufficient-balance-warning {
+      background: #fef3f2;
+      border: 1px solid #fecaca;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 16px 0;
+      display: flex;
+      gap: 12px;
+    }
+
+    .warning-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .warning-content h4 {
+      margin: 0 0 8px 0;
+      color: #dc2626;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .warning-content p {
+      margin: 0 0 8px 0;
+      color: #7f1d1d;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .warning-content p:last-of-type {
+      margin-bottom: 12px;
+    }
+
+    .bolt-wallet-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #dc2626;
+      color: white;
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      transition: background-color 0.2s;
+    }
+
+    .bolt-wallet-link:hover {
+      background: #b91c1c;
+    }
+
     .pay-btn {
       width: 100%;
       background: #f97316;
@@ -791,6 +985,9 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   paidAmount = signal('0');
   remainingAmount = signal('0');
   errorAction = signal<string | null>(null);
+  walletBalance = signal<number | null>(null);
+  balanceLoading = signal(false);
+  hasInsufficientBalance = signal(false);
 
   private invoiceId = '';
 
@@ -799,6 +996,11 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       this.invoiceId = params['id'];
       this.loadInvoice();
     });
+
+    // Check balance when wallet is already connected
+    if (this.walletService.isLoggedInSignal()) {
+      this.checkBalance();
+    }
   }
 
   ngOnDestroy() {
@@ -845,6 +1047,8 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     .subscribe({
       next: (quote) => {
         this.quote.set(quote);
+        // Check balance sufficiency when quote loads
+        this.checkBalanceSufficiency();
         // Start auto-refresh interval if not already running
         this.startQuoteRefresh();
       },
@@ -876,7 +1080,10 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     })
     .pipe(takeUntil(this.destroy$))
     .subscribe({
-      next: (quote) => this.quote.set(quote),
+      next: (quote) => {
+        this.quote.set(quote);
+        this.checkBalanceSufficiency();
+      },
       error: (error) => console.warn('Failed to refresh quote:', error)
     });
   }
@@ -887,14 +1094,52 @@ export class CheckoutComponent implements OnInit, OnDestroy {
 
   onWalletConnected(address: string) {
     this.toastService.success('Wallet Connected', 'Ready to make payment');
+    this.checkBalance();
   }
 
   onWalletError(error: any) {
     this.toastService.error('Connection Failed', 'Failed to connect wallet');
   }
 
+  async checkBalance() {
+    if (!this.walletService.isLoggedInSignal()) {
+      return;
+    }
+
+    this.balanceLoading.set(true);
+    
+    try {
+      const balance = await this.sbtcService.getBalance().toPromise();
+      this.walletBalance.set(balance ? Number(balance) : 0);
+      this.checkBalanceSufficiency();
+    } catch (error) {
+      console.warn('Failed to load wallet balance:', error);
+      this.walletBalance.set(0);
+    } finally {
+      this.balanceLoading.set(false);
+    }
+  }
+
+  private checkBalanceSufficiency() {
+    const balance = this.walletBalance();
+    const quote = this.quote();
+    
+    if (balance !== null && quote) {
+      const requiredSats = parseInt(quote.from_amount);
+      this.hasInsufficientBalance.set(balance < requiredSats);
+    } else {
+      this.hasInsufficientBalance.set(false);
+    }
+  }
+
   async initiatePayment() {
     if (!this.quote() || !this.walletService.isLoggedInSignal()) {
+      return;
+    }
+
+    // Double-check balance sufficiency before proceeding
+    if (this.hasInsufficientBalance()) {
+      this.toastService.error('Insufficient Balance', 'Please add more sBTC to your wallet');
       return;
     }
 
@@ -904,11 +1149,15 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     try {
       const quote = this.quote()!;
       const requiredSats = parseInt(quote.from_amount);
+      const currentBalance = this.walletBalance();
 
-      // Check sBTC balance first
-      const balance = await this.sbtcService.getBalance().toPromise();
-      if (balance && balance < requiredSats) {
-        throw new Error(`Insufficient sBTC balance. Required: ${requiredSats} sats, Available: ${balance} sats`);
+      // Use cached balance for quick check, but refresh if needed
+      if (currentBalance === null || currentBalance < requiredSats) {
+        await this.checkBalance(); // Refresh balance
+        const updatedBalance = this.walletBalance();
+        if (updatedBalance === null || updatedBalance < requiredSats) {
+          throw new Error(`Insufficient sBTC balance. Required: ${requiredSats} sats, Available: ${updatedBalance || 0} sats`);
+        }
       }
 
       // Create and sign the sBTC transfer transaction
@@ -1137,6 +1386,23 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     const address = this.walletService.getSTXAddress();
     if (!address) return '';
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  }
+
+  getBalanceDisplaySats(): string {
+    const balance = this.walletBalance();
+    if (balance === null) return '---';
+    return balance.toLocaleString();
+  }
+
+  getRequiredSats(): number {
+    const quote = this.quote();
+    return quote ? parseInt(quote.from_amount) : 0;
+  }
+
+  getBalanceDisplayBTC(): string {
+    const balance = this.walletBalance();
+    if (balance === null) return '---';
+    return (balance / 100000000).toFixed(8);
   }
 
   closePage() {
