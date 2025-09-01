@@ -12,8 +12,7 @@ import { ToastService, ToastMessage } from '../../services/toast.service';
       @for (toast of toasts; track toast.id) {
         <div 
           class="toast"
-          [ngClass]="toast.type"
-          [@slideIn]>
+          [ngClass]="toast.type">
           <div class="toast-icon">
             @switch (toast.type) {
               @case ('success') { ✅ }

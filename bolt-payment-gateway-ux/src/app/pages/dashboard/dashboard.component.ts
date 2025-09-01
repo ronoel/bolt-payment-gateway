@@ -487,6 +487,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
+          console.log('Dashboard: Received invoice response:', response);
+          console.log('Dashboard: Invoice items:', response.items);
           this.invoices.set(response.items);
           this.pagination.set({
             total: response.total,

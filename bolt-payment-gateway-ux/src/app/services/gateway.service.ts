@@ -128,10 +128,10 @@ export class GatewayService {
   createInvoice(walletAddress: string, request: CreateInvoiceRequest): Observable<Invoice> {
     const url = `${this.baseUrl}/merchants/${walletAddress}/invoices`;
     return this.http.post<Invoice>(url, request).pipe(
-      map(invoice => ({
+      map((invoice: any) => ({
         ...invoice,
-        // Ensure checkout_url points to our frontend
-        checkout_url: `${this.frontendUrl}/pay/${invoice.invoice_id}`
+        invoice_id: invoice.id || invoice.invoice_id, // Map 'id' to 'invoice_id'
+        checkout_url: `${this.frontendUrl}/pay/${invoice.id || invoice.invoice_id}`
       })),
       catchError(this.handleError)
     );
@@ -168,13 +168,23 @@ export class GatewayService {
     }
 
     return this.http.get<ListInvoicesResponse>(url, { params: httpParams }).pipe(
-      map(response => ({
-        ...response,
-        items: response.items.map(invoice => ({
-          ...invoice,
-          checkout_url: `${this.frontendUrl}/pay/${invoice.invoice_id}`
-        }))
-      })),
+      map(response => {
+        console.log('Gateway: Raw API response:', response);
+        const mappedResponse = {
+          ...response,
+          items: response.items.map((invoice: any) => {
+            const mappedInvoice = {
+              ...invoice,
+              invoice_id: invoice.id || invoice.invoice_id, // Map 'id' to 'invoice_id'
+              checkout_url: `${this.frontendUrl}/pay/${invoice.id || invoice.invoice_id}`
+            };
+            console.log('Gateway: Mapped invoice:', mappedInvoice);
+            return mappedInvoice;
+          })
+        };
+        console.log('Gateway: Final mapped response:', mappedResponse);
+        return mappedResponse;
+      }),
       catchError(this.handleError)
     );
   }
@@ -186,10 +196,10 @@ export class GatewayService {
   getInvoice(invoiceId: string): Observable<Invoice> {
     const url = `${this.baseUrl}/invoices/${invoiceId}`;
     return this.http.get<Invoice>(url).pipe(
-      map(invoice => ({
+      map((invoice: any) => ({
         ...invoice,
-        // Ensure checkout_url is properly formatted
-        checkout_url: `${this.frontendUrl}/pay/${invoice.invoice_id}`
+        invoice_id: invoice.id || invoice.invoice_id, // Map 'id' to 'invoice_id'
+        checkout_url: `${this.frontendUrl}/pay/${invoice.id || invoice.invoice_id}`
       })),
       catchError(this.handleError)
     );
