@@ -2,7 +2,6 @@ import { Component, inject, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
-import { QRCodeComponent } from 'angularx-qrcode';
 import { GatewayService, Invoice, Quote, SubmitPaymentRequest } from '../../services/gateway.service';
 import { WalletService } from '../../services/wallet.service';
 import { ToastService } from '../../services/toast.service';
@@ -13,7 +12,7 @@ import { QuoteCardComponent } from '../../components/quote-card/quote-card.compo
 @Component({
   selector: 'app-checkout',
   standalone: true,
-  imports: [CommonModule, WalletConnectButtonComponent, QuoteCardComponent, QRCodeComponent],
+  imports: [CommonModule, WalletConnectButtonComponent, QuoteCardComponent],
   template: `
     <div class="checkout">
       <!-- Header -->
@@ -175,27 +174,6 @@ import { QuoteCardComponent } from '../../components/quote-card/quote-card.compo
                       <div class="quote-loading">
                         <div class="spinner small"></div>
                         <p>Getting current exchange rate...</p>
-                      </div>
-                    }
-
-                    <!-- QR Code Section -->
-                    @if (quote()) {
-                      <div class="qr-section">
-                        <h3>Scan to Pay</h3>
-                        <div class="qr-container">
-                          <qrcode 
-                            [qrdata]="getPaymentQRData()" 
-                            [width]="200"
-                            [errorCorrectionLevel]="'M'"
-                            [colorDark]="'#000000'"
-                            [colorLight]="'#ffffff'"
-                            cssClass="qr-code">
-                          </qrcode>
-                        </div>
-                        <div class="qr-info">
-                          <p class="checkout-url">{{ getPaymentAddress() }}</p>
-                          <p class="qr-instructions">Scan to open checkout page and pay {{ formatSats(quote()?.from_amount || '0') }} sats with sBTC</p>
-                        </div>
                       </div>
                     }
 

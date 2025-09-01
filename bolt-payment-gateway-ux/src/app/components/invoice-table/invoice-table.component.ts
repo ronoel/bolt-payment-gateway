@@ -1,7 +1,7 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { StatusPillComponent } from '../status-pill/status-pill.component';
 import { Invoice, ListInvoicesParams } from '../../services/gateway.service';
 
@@ -57,13 +57,12 @@ import { Invoice, ListInvoicesParams } from '../../services/gateway.service';
                 <th>Amount</th>
                 <th>Order ID</th>
                 <th>Created</th>
-                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               @for (invoice of items; track invoice?.invoice_id || $index) {
                 @if (invoice && invoice.invoice_id) {
-                  <tr>
+                  <tr class="clickable-row" (click)="openInvoice(invoice.invoice_id)">
                     <td class="invoice-id">{{ shortId(invoice.invoice_id) }}</td>
                     <td>
                       <app-status-pill [status]="invoice.status"></app-status-pill>
@@ -73,23 +72,6 @@ import { Invoice, ListInvoicesParams } from '../../services/gateway.service';
                     </td>
                     <td class="order-id">{{ invoice.merchant_order_id || '-' }}</td>
                     <td class="created-date">{{ formatDate(invoice.created_at) }}</td>
-                    <td class="actions">
-                      <button 
-                        class="action-btn primary"
-                        [routerLink]="['/invoices', invoice.invoice_id]">
-                        Open
-                      </button>
-                      <button 
-                        class="action-btn secondary"
-                        (click)="copyLink(invoice.checkout_url)">
-                        Copy Link
-                      </button>
-                      <button 
-                        class="action-btn secondary"
-                        (click)="showQR(invoice.checkout_url)">
-                        QR
-                      </button>
-                    </td>
                   </tr>
                 }
               }
@@ -189,6 +171,15 @@ import { Invoice, ListInvoicesParams } from '../../services/gateway.service';
 
     .invoice-table tr:hover {
       background: #f9fafb;
+    }
+
+    .clickable-row {
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    .clickable-row:hover {
+      background-color: #f3f4f6 !important;
     }
 
     .invoice-id {
@@ -322,6 +313,8 @@ import { Invoice, ListInvoicesParams } from '../../services/gateway.service';
   `]
 })
 export class InvoiceTableComponent {
+  private router = inject(Router);
+  
   @Input() items: Invoice[] = [];
   @Input() total = 0;
   @Input() limit = 20;
@@ -366,6 +359,10 @@ export class InvoiceTableComponent {
 
   showQR(url: string) {
     this.onShowQR.emit(url);
+  }
+
+  openInvoice(invoiceId: string) {
+    this.router.navigate(['/invoices', invoiceId]);
   }
 
   shortId(id: string): string {

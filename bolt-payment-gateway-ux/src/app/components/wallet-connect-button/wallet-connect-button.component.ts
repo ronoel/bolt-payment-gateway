@@ -10,11 +10,6 @@ import { WalletService } from '../../services/wallet.service';
     <div class="wallet-connect">
       @if (!walletService.isLoggedInSignal()) {
         <div class="wallet-card">
-          <div class="wallet-logos">
-            <img src="assets/wallets/leather.png" alt="Leather" />
-            <img src="assets/wallets/xverse.png" alt="Xverse" />
-            <img src="assets/wallets/boom.png" alt="Boom" />
-          </div>
           <button 
             class="connect-btn" 
             (click)="connectWallet()"
