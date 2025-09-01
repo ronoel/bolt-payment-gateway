@@ -1,12 +1,11 @@
-import { Injectable, signal } from '@angular/core';
-import { connect, disconnect, isConnected, getLocalStorage } from '@stacks/connect';
-import { environment } from './../../environments/environment';
+import { computed, Signal, WritableSignal, signal, Injectable, inject } from '@angular/core';
+import { connect, disconnect, isConnected, getLocalStorage, request } from '@stacks/connect';
+import { environment } from '../../environments/environment';
 import { Observable } from 'rxjs';
+import { Router } from '@angular/router';
 
-const myAppName = 'Bolt Gateway'; // shown in wallet pop-up
+const myAppName = 'BoltProto'; // shown in wallet pop-up
 const myAppIcon = 'https://storage.googleapis.com/bitfund/boltproto-icon.png'; // shown in wallet pop-up
-// const myAppIcon = 'https://boostaid.net/images/logo/boostaid-logo.png'; // shown in wallet pop-up
-
 /**
  * Service responsible for managing the user's wallet and authentication status.
  */
@@ -15,8 +14,14 @@ const myAppIcon = 'https://storage.googleapis.com/bitfund/boltproto-icon.png'; /
 })
 export class WalletService {
 
-  private readonly isLoggedInSignal = signal(false);
-  private readonly network = environment.network;
+  readonly isLoggedInSignal = signal(false);
+  readonly userAddressSignal: WritableSignal<string | null> = signal<string | null>(null);
+  readonly network = environment.network;
+  private router = inject(Router);
+
+  readonly walletAddressSignal: Signal<string | null> = computed(() => {
+    return this.userAddressSignal();
+  });
 
   constructor() {
     this.checkAuth();
@@ -28,8 +33,16 @@ export class WalletService {
    */
   private checkAuth() {
     const connected = isConnected();
-    const hasAddress = this.getSTXAddressSafe() !== undefined;
-    this.isLoggedInSignal.set(connected && hasAddress);
+    this.isLoggedInSignal.set(connected);
+    
+    if (connected) {
+      const data = getLocalStorage();
+      // Get the STX address from the stored data
+      const stxAddress = data?.addresses?.stx?.[0]?.address || null;
+      this.userAddressSignal.set(stxAddress);
+    } else {
+      this.userAddressSignal.set(null);
+    }
   }
 
   /**
@@ -43,10 +56,14 @@ export class WalletService {
     }
     
     try {
-      await connect();
+      const response = await connect();
       this.isLoggedInSignal.set(true);
+      
+      // Get the STX address from the response
+      const stxAddress = response?.addresses?.find(addr => addr.address.startsWith('S'))?.address || null;
+      this.userAddressSignal.set(stxAddress);
     } catch (error) {
-      console.error('User cancelled connection:', error);
+      console.log('User cancelled or error occurred:', error);
     }
   }
 
@@ -58,73 +75,57 @@ export class WalletService {
     if (!this.isLoggedInSignal()) {
       return;
     }
+    
     disconnect();
     this.isLoggedInSignal.set(false);
+    this.userAddressSignal.set(null);
+    this.router.navigate(['/']);
   }
 
   /**
    * Checks if the user is currently signed in.
-   * @returns `true` if the user is signed in and has an address, `false` otherwise.
+   * @returns `true` if the user is signed in, `false` otherwise.
    */
   public isLoggedIn() {
-    const connected = isConnected();
-    const hasAddress = this.getSTXAddressSafe() !== undefined;
-    const loggedIn = connected && hasAddress;
-    
-    // Update the signal if it's different
-    if (this.isLoggedInSignal() !== loggedIn) {
-      this.isLoggedInSignal.set(loggedIn);
-    }
-    
-    return loggedIn;
+    return this.isLoggedInSignal();
   }
 
   /**
-   * Retrieves the local storage data.
+   * Retrieves the wallet connection data.
    * @returns The local storage data or null if not connected.
    */
-  public getUserData() {
+  public getWalletData() {
     return getLocalStorage();
   }
 
   /**
    * Retrieves the identity address of the currently signed-in user.
-   * @returns The identity address.
+   * In v8, this returns the STX address as identity address is deprecated.
+   * @returns The STX address.
    */
   public getIdentityAddress() {
-    const userData = this.getUserData();
-    return userData?.addresses?.stx?.[0]?.address;
-  }
-
-  public getPublicKey() {
-    // Note: In the new API, public keys are not directly available from local storage
-    // You may need to request them separately or use a different approach
-    const userData = this.getUserData();
-    return userData?.addresses?.stx?.[0]?.address; // Return address for now
+    return this.userAddressSignal();
   }
 
   /**
    * Retrieves the STX address of the currently signed-in user.
-   * @returns The STX address or throws an error if not connected.
+   * @returns The STX address.
    */
-  public getSTXAddress(): string {
-    const userData = this.getUserData();
-    const address = userData?.addresses?.stx?.[0]?.address;
-    
-    if (!address) {
-      throw new Error('No STX address found. Please connect your wallet first.');
-    }
-    
-    return address;
+  public getSTXAddress() {
+    return this.userAddressSignal();
   }
 
   /**
-   * Retrieves the STX address of the currently signed-in user safely.
-   * @returns The STX address or undefined if not connected.
+   * Retrieves the STX address or throws an error if not available.
+   * @returns The STX address.
+   * @throws Error if user is not connected or address is not available.
    */
-  public getSTXAddressSafe(): string | undefined {
-    const userData = this.getUserData();
-    return userData?.addresses?.stx?.[0]?.address;
+  public getSTXAddressOrThrow(): string {
+    const address = this.userAddressSignal();
+    if (!address) {
+      throw new Error('STX address not available. User may not be connected.');
+    }
+    return address;
   }
 
   public getNetwork() {
@@ -144,8 +145,8 @@ export class WalletService {
     return new Observable<number>((observer) => {
       fetch(`${this.getApiUrl()}/v2/accounts/${address}`)
         .then(response => response.json())
-        .then(data => {
-          observer.next(data.balance); // Convert from microSTX to STX
+        .then((data) => {
+          observer.next(data.balance);
           observer.complete();
         })
         .catch(error => {
@@ -153,4 +154,29 @@ export class WalletService {
         });
     });
   }
+
+  /**
+   * Signs a message using the user's wallet.
+   * @param message The message to sign.
+   * @returns A Promise that resolves to the signature data containing signature and publicKey.
+   */
+  public async signMessage(message: string): Promise<{ signature: string, publicKey: string }> {
+    if (!this.isLoggedIn()) {
+      throw new Error('User is not logged in');
+    }
+
+    try {
+      const response = await request('stx_signMessage', {
+        message
+      });
+      
+      return {
+        signature: response.signature,
+        publicKey: response.publicKey
+      };
+    } catch (error) {
+      throw new Error('User cancelled message signing or an error occurred');
+    }
+  }
+
 }
