@@ -167,6 +167,7 @@ import { QuoteCardComponent } from '../../components/quote-card/quote-card.compo
                     @if (quote()) {
                       <app-quote-card
                         [quote]="quote()!"
+                        [hideRefreshButton]="true"
                         (onRefresh)="refreshQuote()">
                       </app-quote-card>
                     } @else {
@@ -725,6 +726,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   private toastService = inject(ToastService);
   private sbtcService = inject(sBTCTokenService);
   private destroy$ = new Subject<void>();
+  private quoteRefreshInterval: any = null;
 
   // State
   loading = signal(false);
@@ -748,6 +750,10 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    // Clear quote refresh interval
+    if (this.quoteRefreshInterval) {
+      clearInterval(this.quoteRefreshInterval);
+    }
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -785,13 +791,46 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     })
     .pipe(takeUntil(this.destroy$))
     .subscribe({
-      next: (quote) => this.quote.set(quote),
+      next: (quote) => {
+        this.quote.set(quote);
+        // Start auto-refresh interval if not already running
+        this.startQuoteRefresh();
+      },
       error: (error) => console.warn('Failed to load quote:', error)
     });
   }
 
+  private startQuoteRefresh() {
+    // Clear existing interval if any
+    if (this.quoteRefreshInterval) {
+      clearInterval(this.quoteRefreshInterval);
+    }
+
+    // Set up auto-refresh every 10 seconds
+    this.quoteRefreshInterval = setInterval(() => {
+      this.refreshQuoteQuietly();
+    }, 10000);
+  }
+
+  private refreshQuoteQuietly() {
+    const invoice = this.invoice();
+    if (!invoice) return;
+
+    // Refresh quote silently without user feedback
+    this.gatewayService.getQuote({
+      from: 'BTC',
+      to: invoice.settlement_asset,
+      to_amount: invoice.amount
+    })
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: (quote) => this.quote.set(quote),
+      error: (error) => console.warn('Failed to refresh quote:', error)
+    });
+  }
+
   refreshQuote() {
-    this.loadQuote();
+    this.refreshQuoteQuietly();
   }
 
   onWalletConnected(address: string) {

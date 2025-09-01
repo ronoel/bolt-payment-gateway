@@ -7,12 +7,12 @@ import { Quote } from '../../services/gateway.service';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="quote-card" [class.refreshing]="isRefreshing">
+    <div class="quote-card">
       <div class="quote-header">
         <h3>You'll pay</h3>
-        <div class="refresh-timer" [class.warning]="countdown <= 5">
-          Auto-refresh in {{ countdown }}s
-        </div>
+          <div class="refresh-timer" [class.warning]="countdown <= 5">
+            Auto-refresh in {{ countdown }}s
+          </div>
       </div>
 
       <div class="quote-amount">
@@ -36,12 +36,14 @@ import { Quote } from '../../services/gateway.service';
       </div>
 
       <div class="quote-actions">
-        <button 
-          class="refresh-btn"
-          (click)="manualRefresh()"
-          [disabled]="isRefreshing">
-          🔄 {{ isRefreshing ? 'Refreshing...' : 'Refresh Now' }}
-        </button>
+        @if (!hideRefreshButton) {
+          <button 
+            class="refresh-btn"
+            (click)="manualRefresh()"
+            [disabled]="isRefreshing">
+            🔄 {{ isRefreshing ? 'Refreshing...' : 'Refresh Now' }}
+          </button>
+        }
       </div>
     </div>
   `,
@@ -54,15 +56,6 @@ import { Quote } from '../../services/gateway.service';
       position: relative;
       overflow: hidden;
       transition: all 0.3s ease;
-    }
-
-    .quote-card.refreshing {
-      animation: pulse 1s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.02); }
     }
 
     .quote-header {
@@ -191,6 +184,7 @@ import { Quote } from '../../services/gateway.service';
 export class QuoteCardComponent implements OnInit, OnDestroy {
   @Input() quote: Quote | null = null;
   @Input() refreshInterval = 15; // seconds
+  @Input() hideRefreshButton = false; // Hide the manual refresh button
   @Output() onRefresh = new EventEmitter<void>();
 
   countdown = 15;
