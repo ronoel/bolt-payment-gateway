@@ -61,35 +61,37 @@ import { Invoice, ListInvoicesParams } from '../../services/gateway.service';
               </tr>
             </thead>
             <tbody>
-              @for (invoice of items; track invoice.invoice_id) {
-                <tr>
-                  <td class="invoice-id">{{ shortId(invoice.invoice_id) }}</td>
-                  <td>
-                    <app-status-pill [status]="invoice.status"></app-status-pill>
-                  </td>
-                  <td class="amount">
-                    {{ formatAmount(invoice.amount) }} {{ invoice.settlement_asset }}
-                  </td>
-                  <td class="order-id">{{ invoice.merchant_order_id || '-' }}</td>
-                  <td class="created-date">{{ formatDate(invoice.created_at) }}</td>
-                  <td class="actions">
-                    <button 
-                      class="action-btn primary"
-                      [routerLink]="['/invoices', invoice.invoice_id]">
-                      Open
-                    </button>
-                    <button 
-                      class="action-btn secondary"
-                      (click)="copyLink(invoice.checkout_url)">
-                      Copy Link
-                    </button>
-                    <button 
-                      class="action-btn secondary"
-                      (click)="showQR(invoice.checkout_url)">
-                      QR
-                    </button>
-                  </td>
-                </tr>
+              @for (invoice of items; track invoice?.invoice_id || $index) {
+                @if (invoice && invoice.invoice_id) {
+                  <tr>
+                    <td class="invoice-id">{{ shortId(invoice.invoice_id) }}</td>
+                    <td>
+                      <app-status-pill [status]="invoice.status"></app-status-pill>
+                    </td>
+                    <td class="amount">
+                      {{ formatAmount(invoice.amount) }} {{ invoice.settlement_asset }}
+                    </td>
+                    <td class="order-id">{{ invoice.merchant_order_id || '-' }}</td>
+                    <td class="created-date">{{ formatDate(invoice.created_at) }}</td>
+                    <td class="actions">
+                      <button 
+                        class="action-btn primary"
+                        [routerLink]="['/invoices', invoice.invoice_id]">
+                        Open
+                      </button>
+                      <button 
+                        class="action-btn secondary"
+                        (click)="copyLink(invoice.checkout_url)">
+                        Copy Link
+                      </button>
+                      <button 
+                        class="action-btn secondary"
+                        (click)="showQR(invoice.checkout_url)">
+                        QR
+                      </button>
+                    </td>
+                  </tr>
+                }
               }
             </tbody>
           </table>
@@ -367,14 +369,25 @@ export class InvoiceTableComponent {
   }
 
   shortId(id: string): string {
+    if (!id || typeof id !== 'string') {
+      return '';
+    }
     return id.length > 8 ? `${id.slice(0, 8)}...` : id;
   }
 
   formatAmount(amount: string): string {
-    return parseFloat(amount).toFixed(2);
+    if (!amount || typeof amount !== 'string') {
+      return '0.00';
+    }
+    const parsed = parseFloat(amount);
+    return isNaN(parsed) ? '0.00' : parsed.toFixed(2);
   }
 
   formatDate(dateString: string): string {
-    return new Date(dateString).toLocaleDateString();
+    if (!dateString || typeof dateString !== 'string') {
+      return '';
+    }
+    const date = new Date(dateString);
+    return isNaN(date.getTime()) ? '' : date.toLocaleDateString();
   }
 }

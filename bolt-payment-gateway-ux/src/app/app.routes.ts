@@ -27,7 +27,8 @@ export const routes: Routes = [
   },
   {
     path: 'i/:id',
-    redirectTo: '/pay/:id'
+    redirectTo: 'pay/:id', // Short link redirect
+    pathMatch: 'full'
   },
   {
     path: '**',

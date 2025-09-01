@@ -92,6 +92,7 @@ export class GatewayError extends Error {
 })
 export class GatewayService {
   private baseUrl = environment.apiUrl;
+  private frontendUrl = 'http://localhost:4200'; // Current frontend URL
 
   constructor(private http: HttpClient) {}
 
@@ -127,6 +128,11 @@ export class GatewayService {
   createInvoice(walletAddress: string, request: CreateInvoiceRequest): Observable<Invoice> {
     const url = `${this.baseUrl}/merchants/${walletAddress}/invoices`;
     return this.http.post<Invoice>(url, request).pipe(
+      map(invoice => ({
+        ...invoice,
+        // Ensure checkout_url points to our frontend
+        checkout_url: `${this.frontendUrl}/pay/${invoice.invoice_id}`
+      })),
       catchError(this.handleError)
     );
   }
@@ -162,6 +168,13 @@ export class GatewayService {
     }
 
     return this.http.get<ListInvoicesResponse>(url, { params: httpParams }).pipe(
+      map(response => ({
+        ...response,
+        items: response.items.map(invoice => ({
+          ...invoice,
+          checkout_url: `${this.frontendUrl}/pay/${invoice.invoice_id}`
+        }))
+      })),
       catchError(this.handleError)
     );
   }
@@ -173,6 +186,11 @@ export class GatewayService {
   getInvoice(invoiceId: string): Observable<Invoice> {
     const url = `${this.baseUrl}/invoices/${invoiceId}`;
     return this.http.get<Invoice>(url).pipe(
+      map(invoice => ({
+        ...invoice,
+        // Ensure checkout_url is properly formatted
+        checkout_url: `${this.frontendUrl}/pay/${invoice.invoice_id}`
+      })),
       catchError(this.handleError)
     );
   }
@@ -297,6 +315,13 @@ export class GatewayService {
   satoshisToBtc(satoshis: string | number): string {
     const sats = typeof satoshis === 'string' ? parseInt(satoshis) : satoshis;
     return (sats / 100000000).toFixed(8);
+  }
+
+  /**
+   * Helper method to generate short links (if your API supports it)
+   */
+  getShortUrl(invoiceId: string): string {
+    return `${this.frontendUrl}/i/${invoiceId}`;
   }
 
   /**

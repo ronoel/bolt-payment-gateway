@@ -5,6 +5,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { GatewayService, Invoice, Quote, SubmitPaymentRequest } from '../../services/gateway.service';
 import { WalletService } from '../../services/wallet.service';
 import { ToastService } from '../../services/toast.service';
+import { sBTCTokenService } from '../../services/sbtc-token.service';
 import { WalletConnectButtonComponent } from '../../components/wallet-connect-button/wallet-connect-button.component';
 import { QuoteCardComponent } from '../../components/quote-card/quote-card.component';
 
@@ -722,6 +723,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   private gatewayService = inject(GatewayService);
   walletService = inject(WalletService);
   private toastService = inject(ToastService);
+  private sbtcService = inject(sBTCTokenService);
   private destroy$ = new Subject<void>();
 
   // State
@@ -809,19 +811,119 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     this.paymentStatus.set('processing');
 
     try {
-      // In a real implementation, you would:
-      // 1. Create the sBTC transaction
-      // 2. Sign it with the wallet
-      // 3. Submit to the gateway API
+      const quote = this.quote()!;
+      const requiredSats = parseInt(quote.from_amount);
 
-      // For demo purposes, we'll simulate this process
-      await this.simulatePaymentProcess();
+      // Check sBTC balance first
+      const balance = await this.sbtcService.getBalance().toPromise();
+      if (balance && balance < requiredSats) {
+        throw new Error(`Insufficient sBTC balance. Required: ${requiredSats} sats, Available: ${balance} sats`);
+      }
+
+      // Create and sign the sBTC transfer transaction
+      const serializedTx = await this.createSbtcTransaction(requiredSats);
+      
+      // Submit payment to the gateway API
+      const paymentRequest: SubmitPaymentRequest = {
+        serialized_transaction: serializedTx,
+        asset: 'sBTC',
+        amount: quote.from_amount
+      };
+
+      this.gatewayService.submitPayment(this.invoiceId, paymentRequest)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (response) => this.handlePaymentResponse(response),
+          error: (error) => this.handlePaymentError(error)
+        });
 
     } catch (error) {
-      this.processing.set(false);
-      this.paymentStatus.set('idle');
-      this.toastService.error('Payment Failed', 'Failed to process payment');
+      this.handlePaymentError(error);
     }
+  }
+
+  private async createSbtcTransaction(amount: number): Promise<string> {
+    // TODO: Implement transaction creation logic
+    console.warn('createSbtcTransaction not implemented yet');
+    return '';
+  }
+
+  private async getRecipientAddress(): Promise<string> {
+    // In a real implementation, this would come from the invoice or gateway API
+    // For now, return a placeholder - this should be the gateway's sBTC address
+    return 'SP000000000000000000002Q6VF78'; // Placeholder
+  }
+
+  private handlePaymentResponse(response: any) {
+    this.processing.set(false);
+    
+    switch (response.status) {
+      case 'confirmed':
+        this.paymentStatus.set('completed');
+        this.transactionId.set(response.transaction_id || null);
+        this.toastService.success('Payment Successful!', 'Your payment has been confirmed');
+        // Reload invoice to get updated status
+        this.loadInvoice();
+        break;
+        
+      case 'accepted':
+        this.transactionId.set(response.payment_id || null);
+        this.toastService.info('Payment Submitted', 'Waiting for confirmation...');
+        // Start polling for confirmation
+        this.pollPaymentStatus();
+        break;
+        
+      case 'rejected':
+        this.paymentStatus.set('idle');
+        this.toastService.error('Payment Failed', 'Transaction was rejected');
+        break;
+    }
+  }
+
+  private handlePaymentError(error: any) {
+    this.processing.set(false);
+    
+    if (error.statusCode === 412) {
+      // Underpayment
+      const errorData = error.error;
+      this.paidAmount.set(errorData.paid_amount || '0');
+      this.remainingAmount.set(errorData.remaining_amount || '0');
+      this.paymentStatus.set('underpaid');
+      this.toastService.warning('Underpayment', 'Additional payment required');
+    } else if (error.statusCode === 409) {
+      // Already paid or expired
+      this.toastService.error('Payment Error', 'Invoice already paid or expired');
+      this.loadInvoice(); // Refresh to show current status
+    } else {
+      this.paymentStatus.set('idle');
+      this.toastService.error('Payment Failed', error.message || 'Failed to process payment');
+    }
+  }
+
+  private pollPaymentStatus() {
+    // Poll every 3 seconds for payment confirmation
+    const pollInterval = setInterval(() => {
+      this.gatewayService.getInvoice(this.invoiceId)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (invoice) => {
+            if (invoice.status === 'paid' || invoice.status === 'settled') {
+              clearInterval(pollInterval);
+              this.paymentStatus.set('completed');
+              this.invoice.set(invoice);
+              this.toastService.success('Payment Confirmed!', 'Your payment has been confirmed');
+            }
+          },
+          error: () => {
+            // Continue polling on error
+          }
+        });
+    }, 3000);
+
+    // Stop polling after 5 minutes
+    setTimeout(() => {
+      clearInterval(pollInterval);
+    }, 300000);
   }
 
   private async simulatePaymentProcess() {
@@ -869,10 +971,31 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     }
   }
 
-  payRemaining() {
-    // Implement remaining payment logic
-    this.toastService.info('Processing', 'Sending remaining amount...');
-    // This would follow the same flow as initiatePayment()
+  async payRemaining() {
+    const remaining = parseInt(this.remainingAmount());
+    if (remaining <= 0) return;
+
+    this.processing.set(true);
+    
+    try {
+      const serializedTx = await this.createSbtcTransaction(remaining);
+      
+      const paymentRequest: SubmitPaymentRequest = {
+        serialized_transaction: serializedTx,
+        asset: 'sBTC',
+        amount: this.remainingAmount()
+      };
+
+      this.gatewayService.submitPayment(this.invoiceId, paymentRequest)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (response) => this.handlePaymentResponse(response),
+          error: (error) => this.handlePaymentError(error)
+        });
+
+    } catch (error) {
+      this.handlePaymentError(error);
+    }
   }
 
   private handleError(error: any) {
