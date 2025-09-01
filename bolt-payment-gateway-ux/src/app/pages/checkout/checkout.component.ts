@@ -2,6 +2,7 @@ import { Component, inject, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
+import { QRCodeComponent } from 'angularx-qrcode';
 import { GatewayService, Invoice, Quote, SubmitPaymentRequest } from '../../services/gateway.service';
 import { WalletService } from '../../services/wallet.service';
 import { ToastService } from '../../services/toast.service';
@@ -12,7 +13,7 @@ import { QuoteCardComponent } from '../../components/quote-card/quote-card.compo
 @Component({
   selector: 'app-checkout',
   standalone: true,
-  imports: [CommonModule, WalletConnectButtonComponent, QuoteCardComponent],
+  imports: [CommonModule, WalletConnectButtonComponent, QuoteCardComponent, QRCodeComponent],
   template: `
     <div class="checkout">
       <!-- Header -->
@@ -174,6 +175,27 @@ import { QuoteCardComponent } from '../../components/quote-card/quote-card.compo
                       <div class="quote-loading">
                         <div class="spinner small"></div>
                         <p>Getting current exchange rate...</p>
+                      </div>
+                    }
+
+                    <!-- QR Code Section -->
+                    @if (quote()) {
+                      <div class="qr-section">
+                        <h3>Scan to Pay</h3>
+                        <div class="qr-container">
+                          <qrcode 
+                            [qrdata]="getPaymentQRData()" 
+                            [width]="200"
+                            [errorCorrectionLevel]="'M'"
+                            [colorDark]="'#000000'"
+                            [colorLight]="'#ffffff'"
+                            cssClass="qr-code">
+                          </qrcode>
+                        </div>
+                        <div class="qr-info">
+                          <p class="checkout-url">{{ getPaymentAddress() }}</p>
+                          <p class="qr-instructions">Scan to open checkout page and pay {{ formatSats(quote()?.from_amount || '0') }} sats with sBTC</p>
+                        </div>
                       </div>
                     }
 
@@ -483,6 +505,58 @@ import { QuoteCardComponent } from '../../components/quote-card/quote-card.compo
     .quote-loading p {
       margin: 16px 0 0 0;
       color: #6b7280;
+    }
+
+    /* QR Code Section */
+    .qr-section {
+      padding: 32px;
+      text-align: center;
+      background: white;
+      border-radius: 16px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    .qr-section h3 {
+      margin: 0 0 24px 0;
+      color: #374151;
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .qr-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 24px;
+      padding: 16px;
+      background: #f9fafb;
+      border-radius: 12px;
+      border: 2px dashed #d1d5db;
+    }
+
+    .qr-code {
+      border-radius: 8px;
+    }
+
+    .qr-info {
+      text-align: center;
+    }
+
+    .checkout-url {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: #6b7280;
+      background: #f3f4f6;
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin: 0 0 12px 0;
+      word-break: break-all;
+    }
+
+    .qr-instructions {
+      margin: 0;
+      color: #6b7280;
+      font-size: 14px;
     }
 
     /* Wallet Section */
@@ -1119,5 +1193,19 @@ export class CheckoutComponent implements OnInit, OnDestroy {
 
   formatSats(amount: string): string {
     return parseInt(amount).toLocaleString();
+  }
+
+  getPaymentQRData(): string {
+    const invoice = this.invoice();
+    if (!invoice) return '';
+    
+    // Generate the checkout URL for this invoice
+    const baseUrl = window.location.origin;
+    return `${baseUrl}/pay/${invoice.invoice_id}`;
+  }
+
+  getPaymentAddress(): string {
+    // Return the checkout URL instead of a Bitcoin address
+    return this.getPaymentQRData();
   }
 }

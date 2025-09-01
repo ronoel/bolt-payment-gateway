@@ -1,10 +1,11 @@
 import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { QRCodeComponent } from 'angularx-qrcode';
 
 @Component({
   selector: 'app-share-panel',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, QRCodeComponent],
   template: `
     <div class="share-panel">
       <div class="share-header">
@@ -52,17 +53,16 @@ import { CommonModule } from '@angular/common';
               <button class="close-btn" (click)="closeQR()">×</button>
             </div>
             <div class="qr-code">
-              <canvas #qrCanvas></canvas>
+              <qrcode 
+                [qrdata]="checkout_url" 
+                [width]="200"
+                [errorCorrectionLevel]="'M'"
+                [colorDark]="'#000000'"
+                [colorLight]="'#ffffff'"
+                cssClass="share-qr-code">
+              </qrcode>
             </div>
             <div class="qr-url">{{ checkout_url }}</div>
-            <div class="qr-actions">
-              <button class="download-btn" (click)="downloadQR()">
-                Download QR
-              </button>
-              <button class="print-btn" (click)="printQR()">
-                Print QR
-              </button>
-            </div>
           </div>
         </div>
       }
@@ -236,11 +236,13 @@ import { CommonModule } from '@angular/common';
     .qr-code {
       text-align: center;
       margin-bottom: 16px;
+      padding: 16px;
+      background: #f9fafb;
+      border-radius: 8px;
     }
 
-    .qr-code canvas {
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
+    .share-qr-code {
+      border-radius: 4px;
     }
 
     .qr-url {
@@ -250,28 +252,6 @@ import { CommonModule } from '@angular/common';
       word-break: break-all;
       margin-bottom: 20px;
       font-family: monospace;
-    }
-
-    .qr-actions {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-    }
-
-    .download-btn,
-    .print-btn {
-      padding: 8px 16px;
-      border: 1px solid #d1d5db;
-      background: white;
-      border-radius: 6px;
-      font-size: 14px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .download-btn:hover,
-    .print-btn:hover {
-      background: #f3f4f6;
     }
   `]
 })
@@ -299,8 +279,6 @@ export class SharePanelComponent {
   showQR() {
     this.showQRModal = true;
     this.onShowQR.emit(this.checkout_url);
-    // Generate QR code after modal is shown
-    setTimeout(() => this.generateQRCode(), 100);
   }
 
   closeQR() {
@@ -310,55 +288,5 @@ export class SharePanelComponent {
   openCheckout() {
     window.open(this.checkout_url, '_blank');
     this.onOpenCheckout.emit(this.checkout_url);
-  }
-
-  private generateQRCode() {
-    // Simple QR code generation - in a real app, you'd use a QR library
-    const canvas = document.querySelector('.qr-code canvas') as HTMLCanvasElement;
-    if (canvas) {
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        canvas.width = 200;
-        canvas.height = 200;
-        ctx.fillStyle = '#000';
-        ctx.fillRect(0, 0, 200, 200);
-        ctx.fillStyle = '#fff';
-        ctx.font = '12px monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText('QR Code', 100, 100);
-        ctx.fillText('(Use QR library)', 100, 120);
-      }
-    }
-  }
-
-  downloadQR() {
-    const canvas = document.querySelector('.qr-code canvas') as HTMLCanvasElement;
-    if (canvas) {
-      const link = document.createElement('a');
-      link.download = 'invoice-qr.png';
-      link.href = canvas.toDataURL();
-      link.click();
-    }
-  }
-
-  printQR() {
-    const canvas = document.querySelector('.qr-code canvas') as HTMLCanvasElement;
-    if (canvas) {
-      const printWindow = window.open('', '_blank');
-      if (printWindow) {
-        printWindow.document.write(`
-          <html>
-            <head><title>Invoice QR Code</title></head>
-            <body style="text-align: center; padding: 20px;">
-              <h2>Scan to Pay</h2>
-              <img src="${canvas.toDataURL()}" style="border: 1px solid #ccc;" />
-              <p style="word-break: break-all; font-family: monospace; font-size: 12px;">${this.checkout_url}</p>
-            </body>
-          </html>
-        `);
-        printWindow.document.close();
-        printWindow.print();
-      }
-    }
   }
 }
