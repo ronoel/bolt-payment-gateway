@@ -1,8 +1,9 @@
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { catchError, map, switchMap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
+import { BoltContractSBTCService } from './bolt-contract-sbtc.service';
 
 // Interfaces based on OpenAPI schema
 export interface ErrorResponse {
@@ -93,8 +94,12 @@ export class GatewayError extends Error {
 export class GatewayService {
   private baseUrl = environment.apiUrl;
   private frontendUrl = 'http://localhost:4200'; // Current frontend URL
+  transactionService: any;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private boltContractSBTCService: BoltContractSBTCService
+  ) {}
 
   /**
    * Handle HTTP errors and convert them to GatewayError
@@ -200,9 +205,26 @@ export class GatewayService {
    * Submit a payment transaction for an invoice
    * POST /invoices/{invoice_id}/payments/submit
    */
-  submitPayment(invoiceId: string, request: SubmitPaymentRequest): Observable<PaymentResult> {
-    const url = `${this.baseUrl}/invoices/${invoiceId}/payments/submit`;
-    return this.http.post<PaymentResult>(url, request).pipe(
+  submitPayment(invoice: Invoice, amount: string): Observable<PaymentResult> {
+    const url = `${this.baseUrl}/invoices/${invoice.invoice_id}/payments/submit`;
+
+    // get the serialized transaction and then submit payment
+    return this.boltContractSBTCService.transferBoltToBolt(
+      parseInt(amount),
+      environment.gatewayAddress,
+      `BG-MID: ${invoice.merchant_order_id}`
+    ).pipe(
+      map((serialized_transaction: string) => {
+        const request: SubmitPaymentRequest = {
+          serialized_transaction: serialized_transaction,
+          asset: 'BTC',
+          amount: amount
+        };
+        return request;
+      }),
+      switchMap((request: SubmitPaymentRequest) => {
+        return this.http.post<PaymentResult>(url, request);
+      }),
       catchError(this.handleError)
     );
   }
@@ -332,4 +354,5 @@ export class GatewayService {
     const btcAmount = typeof btc === 'string' ? parseFloat(btc) : btc;
     return Math.round(btcAmount * 100000000).toString();
   }
+
 }

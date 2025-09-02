@@ -7,6 +7,7 @@ export const environment = {
     // apiUrl: 'https://test.boltproto.org/api/v1',
     // blockchainAPIUrl: 'http://localhost:3999',
     blockchainAPIUrl: 'https://api.testnet.hiro.so',
+    gatewayAddress: 'ST3QZNX3CGT6V7PE1PBK17FCRK1TP1AT02W1N0YJF',
     boltProtocol: {
         apiUrl: 'http://localhost:3000/api/v1',
         contractAddress: 'ST3QZNX3CGT6V7PE1PBK17FCRK1TP1AT02W1N0YJF',

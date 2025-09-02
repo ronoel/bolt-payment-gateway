@@ -88,29 +88,22 @@ import { QuoteCardComponent } from '../../components/quote-card/quote-card.compo
               @else if (paymentStatus() === 'underpaid') {
                 <div class="underpayment-state">
                   <div class="underpayment-icon">⚠️</div>
-                  <h2>Payment Incomplete</h2>
-                  <p>You've sent {{ formatSats(paidAmount()) }} sats, but {{ formatSats(remainingAmount()) }} sats are still needed.</p>
+                  <h2>Payment Failed</h2>
+                  <p>Your payment could not be processed. No funds were debited from your account.</p>
+                  <p>Please try again with the updated quote.</p>
                   
                   <div class="payment-summary">
                     <div class="summary-row">
-                      <span>Required:</span>
+                      <span>Required Amount:</span>
                       <span>{{ formatSats(quote()?.from_amount || '0') }} sats</span>
-                    </div>
-                    <div class="summary-row">
-                      <span>Paid:</span>
-                      <span>{{ formatSats(paidAmount()) }} sats</span>
-                    </div>
-                    <div class="summary-row remaining">
-                      <span>Remaining:</span>
-                      <span>{{ formatSats(remainingAmount()) }} sats</span>
                     </div>
                   </div>
 
                   <button 
-                    class="pay-remaining-btn"
-                    (click)="payRemaining()"
+                    class="retry-payment-btn"
+                    (click)="retryPayment()"
                     [disabled]="!walletService.isLoggedInSignal() || processing()">
-                    Send Remaining {{ formatSats(remainingAmount()) }} sats
+                    Try Payment Again
                   </button>
                 </div>
               }
@@ -192,7 +185,6 @@ import { QuoteCardComponent } from '../../components/quote-card/quote-card.compo
                       } @else {
                         <div class="payment-ready">
                           <div class="wallet-connected">
-                            <span class="wallet-icon">👛</span>
                             <span class="wallet-address">{{ getShortAddress() }}</span>
                             <span class="connected-badge">Connected</span>
                           </div>
@@ -873,8 +865,8 @@ import { QuoteCardComponent } from '../../components/quote-card/quote-card.compo
       margin-top: 8px;
     }
 
-    .pay-remaining-btn {
-      background: #f59e0b;
+    .retry-payment-btn {
+      background: #f97316;
       color: white;
       border: none;
       padding: 16px 32px;
@@ -884,11 +876,11 @@ import { QuoteCardComponent } from '../../components/quote-card/quote-card.compo
       cursor: pointer;
     }
 
-    .pay-remaining-btn:hover:not(:disabled) {
-      background: #d97706;
+    .retry-payment-btn:hover:not(:disabled) {
+      background: #ea580c;
     }
 
-    .pay-remaining-btn:disabled {
+    .retry-payment-btn:disabled {
       background: #d1d5db;
       cursor: not-allowed;
     }
@@ -982,8 +974,6 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   paymentStatus = signal<'idle' | 'processing' | 'completed' | 'underpaid'>('idle');
   processing = signal(false);
   transactionId = signal<string | null>(null);
-  paidAmount = signal('0');
-  remainingAmount = signal('0');
   errorAction = signal<string | null>(null);
   walletBalance = signal<number | null>(null);
   balanceLoading = signal(false);
@@ -1065,7 +1055,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     // Set up auto-refresh every 10 seconds
     this.quoteRefreshInterval = setInterval(() => {
       this.refreshQuoteQuietly();
-    }, 10000);
+    }, 20000);
   }
 
   private refreshQuoteQuietly() {
@@ -1160,17 +1150,9 @@ export class CheckoutComponent implements OnInit, OnDestroy {
         }
       }
 
-      // Create and sign the sBTC transfer transaction
-      const serializedTx = await this.createSbtcTransaction(requiredSats);
-      
-      // Submit payment to the gateway API
-      const paymentRequest: SubmitPaymentRequest = {
-        serialized_transaction: serializedTx,
-        asset: 'sBTC',
-        amount: quote.from_amount
-      };
-
-      this.gatewayService.submitPayment(this.invoiceId, paymentRequest)
+      // Submit payment to the gateway API (service handles transaction creation)
+      const invoice = this.invoice()!;
+      this.gatewayService.submitPayment(invoice, quote.from_amount)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (response) => this.handlePaymentResponse(response),
@@ -1224,12 +1206,11 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     this.processing.set(false);
     
     if (error.statusCode === 412) {
-      // Underpayment
-      const errorData = error.error;
-      this.paidAmount.set(errorData.paid_amount || '0');
-      this.remainingAmount.set(errorData.remaining_amount || '0');
+      // Underpayment - no funds debited, user can try again
       this.paymentStatus.set('underpaid');
-      this.toastService.warning('Underpayment', 'Additional payment required');
+      this.toastService.warning('Payment Failed', 'No funds were debited. Please try again.');
+      // Refresh quote for retry
+      this.refreshQuoteQuietly();
     } else if (error.statusCode === 409) {
       // Already paid or expired
       this.toastService.error('Payment Error', 'Invoice already paid or expired');
@@ -1294,13 +1275,9 @@ export class CheckoutComponent implements OnInit, OnDestroy {
         break;
       
       case 'underpaid':
-        const requiredSats = parseInt(this.quote()!.from_amount);
-        const paidSats = Math.floor(requiredSats * 0.8); // 80% paid
-        this.paidAmount.set(paidSats.toString());
-        this.remainingAmount.set((requiredSats - paidSats).toString());
         this.paymentStatus.set('underpaid');
         this.processing.set(false);
-        this.toastService.warning('Underpayment', 'Additional payment required');
+        this.toastService.warning('Payment Failed', 'No funds were debited. Please try again.');
         break;
       
       case 'error':
@@ -1311,31 +1288,11 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     }
   }
 
-  async payRemaining() {
-    const remaining = parseInt(this.remainingAmount());
-    if (remaining <= 0) return;
-
-    this.processing.set(true);
-    
-    try {
-      const serializedTx = await this.createSbtcTransaction(remaining);
-      
-      const paymentRequest: SubmitPaymentRequest = {
-        serialized_transaction: serializedTx,
-        asset: 'sBTC',
-        amount: this.remainingAmount()
-      };
-
-      this.gatewayService.submitPayment(this.invoiceId, paymentRequest)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (response) => this.handlePaymentResponse(response),
-          error: (error) => this.handlePaymentError(error)
-        });
-
-    } catch (error) {
-      this.handlePaymentError(error);
-    }
+  retryPayment() {
+    // Reset to idle state and refresh quote
+    this.paymentStatus.set('idle');
+    this.refreshQuoteQuietly();
+    this.checkBalance();
   }
 
   private handleError(error: any) {
