@@ -6,7 +6,7 @@ use axum::{
 };
 
 use crate::{models::{
-    convert_string_to_object_id, ErrorResponse, Payment, PaymentResponse, PaymentStatus, SubmitPaymentRequest,
+    convert_string_to_object_id, ErrorResponse, Invoice, InvoiceStatus, Payment, PaymentResponse, PaymentStatus, SubmitPaymentRequest
 }, shared::calculate_satoshis_for_usd_with_spread, AppState};
 
 /// Submit a payment transaction for an invoice
@@ -190,11 +190,34 @@ pub async fn submit_payment(
         }
     };
 
-    // Update payment status to Confirmed with transaction details since the transaction was successfully broadcast
-    if let Err(update_err) = app_state.payment_repository.confirm(&payment.id, &bolt_response.txid).await {
-        tracing::error!("Failed to update payment tx_id: {}", update_err);
-    }
+    let payment_confirmed = match app_state.payment_repository.confirm(&payment.id, &bolt_response.txid).await {
+        Ok(confirmed_payment) => confirmed_payment.ok_or_else(|| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ErrorResponse {
+                    error: "payment_confirmation_error".to_string(),
+                    message: "Failed to confirm payment".to_string(),
+                }),
+            )
+        })?,
+        Err(e) => {
+            tracing::error!("Failed to confirm payment: {}", e);
+            return Err((
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ErrorResponse {
+                    error: "payment_confirmation_error".to_string(),
+                    message: "Failed to confirm payment".to_string(),
+                }),
+            ));
+        }
+    };
 
+    match app_state.invoice_repository.update_status(&invoice.id.to_string(), InvoiceStatus::Paid).await {
+        Ok(_) => (),
+        Err(e) => {
+            tracing::error!("Failed to update invoice status to Paid: {}", e);
+        }
+    }
 
     tracing::info!(
         "Payment {} submitted for invoice {} with amount {} and tx_id {} {:?}",
@@ -205,5 +228,5 @@ pub async fn submit_payment(
         payment.asset
     );
 
-    Ok(Json(PaymentResponse::from(payment)))
+    Ok(Json(PaymentResponse::from(payment_confirmed)))
 }
