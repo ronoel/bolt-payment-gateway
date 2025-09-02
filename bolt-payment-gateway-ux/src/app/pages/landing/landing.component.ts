@@ -15,7 +15,9 @@ import { WalletService } from '../../services/wallet.service';
         <div class="container">
           <div class="header-content">
             <div class="logo">
-              <div class="logo-icon">⚡</div>
+              <div class="logo-icon">
+                <img src="assets/images/bolt-icon.png" alt="Bolt Payment Gateway" />
+              </div>
               <h1 class="logo-text">Bolt Payment Gateway</h1>
             </div>
             <nav class="nav">
@@ -260,7 +262,9 @@ import { WalletService } from '../../services/wallet.service';
             <div class="footer-main">
               <div class="footer-brand">
                 <div class="footer-logo">
-                  <div class="logo-icon">⚡</div>
+                  <div class="logo-icon">
+                    <img src="assets/images/bolt-icon.png" alt="Bolt Payment Gateway" />
+                  </div>
                   <span>Bolt Payment Gateway</span>
                 </div>
                 <p>Professional Bitcoin payment processing for modern businesses.</p>
@@ -356,16 +360,18 @@ import { WalletService } from '../../services/wallet.service';
       gap: var(--space-3);
     }
 
-    .logo-icon {
-      width: 40px;
-      height: 40px;
-      background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-600));
-      border-radius: var(--radius-xl);
+        .logo-icon {
+      width: 48px;
+      height: 48px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: var(--font-size-xl);
-      box-shadow: var(--shadow-lg);
+    }
+
+    .logo-icon img {
+      width: 48px;
+      height: 48px;
+      object-fit: contain;
     }
 
     .logo-text {

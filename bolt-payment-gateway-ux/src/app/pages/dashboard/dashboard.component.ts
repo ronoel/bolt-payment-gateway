@@ -19,7 +19,9 @@ import { InvoiceTableComponent } from '../../components/invoice-table/invoice-ta
           <div class="header-content">
             <div class="header-left">
               <div class="header-brand">
-                <div class="brand-icon">💼</div>
+                <div class="brand-icon">
+                  <img src="assets/images/bolt-icon.png" alt="Bolt Payment Gateway" />
+                </div>
                 <div class="brand-text">
                   <h1>Merchant Dashboard</h1>
                   <p>Manage your Bitcoin payment requests</p>
@@ -46,23 +48,6 @@ import { InvoiceTableComponent } from '../../components/invoice-table/invoice-ta
         <div class="container">
           <!-- Stats Cards -->
           <section class="stats-section">
-            <div class="section-header">
-              <h2>Overview</h2>
-              <button 
-                class="btn btn-ghost btn-sm"
-                (click)="refreshInvoices()"
-                [disabled]="loading()">
-                @if (loading()) {
-                  <div class="loading-spinner"></div>
-                  <span>Refreshing...</span>
-                } @else {
-                  <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                  </svg>
-                  <span>Refresh</span>
-                }
-              </button>
-            </div>
             <div class="stats-grid">
               <div class="stat-card">
                 <div class="stat-icon total">
@@ -105,69 +90,9 @@ import { InvoiceTableComponent } from '../../components/invoice-table/invoice-ta
                 </div>
                 <div class="stat-content">
                   <div class="stat-value">\${{ stats().totalAmount }}</div>
-                  <div class="stat-label">Total Amount</div>
+                  <div class="stat-label">Total Received</div>
                 </div>
               </div>
-            </div>
-          </section>
-
-          <!-- Quick Actions -->
-          <section class="quick-actions">
-            <div class="section-header">
-              <h2>Quick Actions</h2>
-              <p class="section-subtitle">Common tasks to manage your payments</p>
-            </div>
-            <div class="actions-grid">
-              <a routerLink="/invoices/new" class="action-card featured">
-                <div class="action-icon">
-                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                  </svg>
-                </div>
-                <div class="action-content">
-                  <h3>Create Invoice</h3>
-                  <p>Start a new payment request with POS interface</p>
-                  <span class="action-badge">Primary</span>
-                </div>
-                <div class="action-arrow">
-                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                  </svg>
-                </div>
-              </a>
-              <button class="action-card" (click)="refreshInvoices()">
-                <div class="action-icon">
-                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                  </svg>
-                </div>
-                <div class="action-content">
-                  <h3>Refresh Data</h3>
-                  <p>Update invoice status and recent payments</p>
-                </div>
-                <div class="action-arrow">
-                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                  </svg>
-                </div>
-              </button>
-              <a href="#analytics" class="action-card">
-                <div class="action-icon">
-                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                  </svg>
-                </div>
-                <div class="action-content">
-                  <h3>View Analytics</h3>
-                  <p>Detailed reports and payment trends</p>
-                  <span class="action-badge coming-soon">Coming Soon</span>
-                </div>
-                <div class="action-arrow">
-                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                  </svg>
-                </div>
-              </a>
             </div>
           </section>
 
@@ -179,6 +104,20 @@ import { InvoiceTableComponent } from '../../components/invoice-table/invoice-ta
                 <p class="section-subtitle">Manage and track your payment requests</p>
               </div>
               <div class="header-actions">
+                <button 
+                  class="btn btn-ghost btn-sm"
+                  (click)="refreshInvoices()"
+                  [disabled]="loading()">
+                  @if (loading()) {
+                    <div class="loading-spinner"></div>
+                    <span>Refreshing...</span>
+                  } @else {
+                    <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    <span>Refresh</span>
+                  }
+                </button>
                 <a routerLink="/invoices" class="btn btn-ghost btn-sm">
                   <span>View All</span>
                   <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -261,16 +200,18 @@ import { InvoiceTableComponent } from '../../components/invoice-table/invoice-ta
       gap: var(--space-4);
     }
 
-    .brand-icon {
+        .brand-icon {
       width: 48px;
       height: 48px;
-      background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-600));
-      border-radius: var(--radius-xl);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: var(--font-size-xl);
-      box-shadow: var(--shadow-md);
+    }
+
+    .brand-icon img {
+      width: 48px;
+      height: 48px;
+      object-fit: contain;
     }
 
     .brand-text h1 {
@@ -336,37 +277,37 @@ import { InvoiceTableComponent } from '../../components/invoice-table/invoice-ta
 
     /* Stats Section */
     .stats-section {
-      margin-bottom: var(--space-16);
+      margin-bottom: var(--space-8);
     }
 
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: var(--space-6);
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: var(--space-4);
     }
 
     .stat-card {
       background: white;
       border: 1px solid var(--color-neutral-200);
-      border-radius: var(--radius-2xl);
-      padding: var(--space-8);
+      border-radius: var(--radius-xl);
+      padding: var(--space-5);
       display: flex;
       align-items: center;
-      gap: var(--space-6);
+      gap: var(--space-4);
       transition: all var(--transition-fast);
       box-shadow: var(--shadow-sm);
     }
 
     .stat-card:hover {
-      transform: translateY(-2px);
+      transform: translateY(-1px);
       box-shadow: var(--shadow-md);
       border-color: var(--color-primary-200);
     }
 
     .stat-icon {
-      width: 64px;
-      height: 64px;
-      border-radius: var(--radius-xl);
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-lg);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -374,8 +315,8 @@ import { InvoiceTableComponent } from '../../components/invoice-table/invoice-ta
     }
 
     .stat-icon svg {
-      width: 28px;
-      height: 28px;
+      width: 22px;
+      height: 22px;
       stroke-width: 1.5;
     }
 
@@ -404,7 +345,7 @@ import { InvoiceTableComponent } from '../../components/invoice-table/invoice-ta
     }
 
     .stat-value {
-      font-size: var(--font-size-3xl);
+      font-size: var(--font-size-2xl);
       font-weight: var(--font-weight-bold);
       color: var(--color-neutral-900);
       line-height: var(--line-height-tight);
@@ -412,142 +353,9 @@ import { InvoiceTableComponent } from '../../components/invoice-table/invoice-ta
     }
 
     .stat-label {
-      font-size: var(--font-size-sm);
-      color: var(--color-neutral-600);
-      font-weight: var(--font-weight-medium);
-    }
-
-    /* Quick Actions */
-    .quick-actions {
-      margin-bottom: var(--space-16);
-    }
-
-    .actions-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-      gap: var(--space-6);
-    }
-
-    .action-card {
-      background: white;
-      border: 1px solid var(--color-neutral-200);
-      border-radius: var(--radius-2xl);
-      padding: var(--space-8);
-      display: flex;
-      align-items: center;
-      gap: var(--space-6);
-      text-decoration: none;
-      color: inherit;
-      cursor: pointer;
-      transition: all var(--transition-fast);
-      box-shadow: var(--shadow-sm);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .action-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: transparent;
-      transition: background var(--transition-fast);
-    }
-
-    .action-card:hover {
-      transform: translateY(-3px);
-      box-shadow: var(--shadow-lg);
-      border-color: var(--color-primary-200);
-    }
-
-    .action-card:hover::before {
-      background: linear-gradient(90deg, var(--color-primary-500), var(--color-primary-600));
-    }
-
-    .action-card.featured {
-      border-color: var(--color-primary-200);
-      background: linear-gradient(135deg, white 0%, var(--color-primary-50) 100%);
-    }
-
-    .action-card.featured::before {
-      background: linear-gradient(90deg, var(--color-primary-500), var(--color-primary-600));
-    }
-
-    .action-icon {
-      width: 56px;
-      height: 56px;
-      background: var(--color-neutral-100);
-      border-radius: var(--radius-xl);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--color-neutral-600);
-      flex-shrink: 0;
-      transition: all var(--transition-fast);
-    }
-
-    .action-card.featured .action-icon {
-      background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-600));
-      color: white;
-      box-shadow: var(--shadow-md);
-    }
-
-    .action-icon svg {
-      width: 24px;
-      height: 24px;
-      stroke-width: 1.5;
-    }
-
-    .action-content {
-      flex: 1;
-    }
-
-    .action-content h3 {
-      margin: 0 0 var(--space-2) 0;
-      font-size: var(--font-size-lg);
-      font-weight: var(--font-weight-semibold);
-      color: var(--color-neutral-900);
-      line-height: var(--line-height-tight);
-    }
-
-    .action-content p {
-      margin: 0 0 var(--space-3) 0;
-      color: var(--color-neutral-600);
-      font-size: var(--font-size-sm);
-      line-height: var(--line-height-normal);
-    }
-
-    .action-badge {
-      display: inline-block;
-      padding: var(--space-1) var(--space-3);
-      border-radius: var(--radius-full);
       font-size: var(--font-size-xs);
-      font-weight: var(--font-weight-medium);
-      background: var(--color-primary-100);
-      color: var(--color-primary-700);
-    }
-
-    .action-badge.coming-soon {
-      background: var(--color-neutral-100);
       color: var(--color-neutral-600);
-    }
-
-    .action-arrow {
-      color: var(--color-neutral-400);
-      flex-shrink: 0;
-      transition: all var(--transition-fast);
-    }
-
-    .action-card:hover .action-arrow {
-      color: var(--color-primary-500);
-      transform: translateX(2px);
-    }
-
-    .action-arrow svg {
-      width: 20px;
-      height: 20px;
+      font-weight: var(--font-weight-medium);
     }
 
     /* Invoices Section */
@@ -653,11 +461,7 @@ import { InvoiceTableComponent } from '../../components/invoice-table/invoice-ta
       }
 
       .stats-grid {
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      }
-
-      .actions-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       }
     }
 
@@ -677,35 +481,26 @@ import { InvoiceTableComponent } from '../../components/invoice-table/invoice-ta
       }
 
       .stats-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-3);
       }
 
       .stat-card {
-        padding: var(--space-6);
+        padding: var(--space-4);
       }
 
       .stat-icon {
-        width: 56px;
-        height: 56px;
+        width: 40px;
+        height: 40px;
       }
 
       .stat-icon svg {
-        width: 24px;
-        height: 24px;
+        width: 18px;
+        height: 18px;
       }
 
-      .action-card {
-        padding: var(--space-6);
-      }
-
-      .action-icon {
-        width: 48px;
-        height: 48px;
-      }
-
-      .action-icon svg {
-        width: 20px;
-        height: 20px;
+      .stat-value {
+        font-size: var(--font-size-xl);
       }
 
       .invoices-section .section-header,

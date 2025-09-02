@@ -19,7 +19,10 @@ import { QuoteCardComponent } from '../../components/quote-card/quote-card.compo
       <header class="header">
         <div class="container">
           <div class="logo">
-            <h1>⚡ Bolt Payment</h1>
+            <div class="logo-icon">
+              <img src="assets/images/bolt-icon.png" alt="Bolt Payment Gateway" />
+            </div>
+            <h1>Bolt Payment</h1>
           </div>
           <div class="header-info">
             @if (invoice()) {
@@ -403,6 +406,27 @@ import { QuoteCardComponent } from '../../components/quote-card/quote-card.compo
       display: flex;
       justify-content: space-between;
       align-items: center;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-icon img {
+      width: 32px;
+      height: 32px;
+      object-fit: contain;
+      filter: brightness(0) invert(1);
     }
 
     .logo h1 {
