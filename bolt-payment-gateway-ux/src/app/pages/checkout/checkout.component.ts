@@ -55,47 +55,89 @@ import { QuoteCardComponent } from '../../components/quote-card/quote-card.compo
               <!-- Payment completed state -->
               @if (paymentStatus() === 'completed') {
                 <div class="success-state">
-                  <div class="confetti">🎉</div>
-                  <h2>Payment Successful!</h2>
-                  <div class="success-details">
-                    <div class="amount-paid">
-                      {{ formatAmount(invoice()!.amount) }} {{ invoice()!.settlement_asset }}
-                    </div>
-                    @if (transactionId()) {
-                      <div class="tx-info">
-                        <span class="label">Transaction ID:</span>
-                        <a 
-                          [href]="getExplorerUrl(transactionId()!)" 
-                          target="_blank" 
-                          class="tx-link">
-                          {{ shortTxId(transactionId()!) }}
-                        </a>
+                  <div class="success-animation">
+                    <div class="checkmark-container">
+                      <div class="checkmark-circle">
+                        <div class="checkmark">✓</div>
                       </div>
-                    }
+                    </div>
+                    <div class="confetti-container">
+                      <div class="confetti">🎉</div>
+                      <div class="confetti">🎊</div>
+                      <div class="confetti">✨</div>
+                      <div class="confetti">🎉</div>
+                      <div class="confetti">🎊</div>
+                    </div>
                   </div>
+                  
+                  <h2 class="success-title">Payment Confirmed!</h2>
+                  <p class="success-subtitle">Your payment has been successfully processed</p>
+                  
+                  <div class="success-details">
+                    <div class="payment-summary-card">
+                      <div class="summary-row primary">
+                        <span class="label">Amount Paid</span>
+                        <span class="value">{{ formatAmount(invoice()!.amount) }} {{ invoice()!.settlement_asset }}</span>
+                      </div>
+                      @if (quote()) {
+                        <div class="summary-row">
+                          <span class="label">Paid with</span>
+                          <span class="value">{{ formatSats(quote()!.from_amount) }} sats</span>
+                        </div>
+                      }
+                      @if (transactionId()) {
+                        <div class="summary-row">
+                          <span class="label">Transaction ID</span>
+                          <div class="tx-display">
+                            <span class="tx-short">{{ shortTxId(transactionId()!) }}</span>
+                            <a 
+                              [href]="getExplorerUrl(transactionId()!)" 
+                              target="_blank" 
+                              class="view-tx-btn"
+                              title="View on blockchain explorer">
+                              🔗 View
+                            </a>
+                          </div>
+                        </div>
+                      }
+                      @if (invoice()!.merchant_order_id && invoice()!.merchant_order_id !== invoice()!.invoice_id) {
+                        <div class="summary-row">
+                          <span class="label">Order Reference</span>
+                          <span class="value">{{ invoice()!.merchant_order_id }}</span>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                  
                   <div class="success-actions">
-                    <button class="done-btn" (click)="closePage()">
+                    <button class="primary-btn" (click)="closePage()">
+                      <span class="btn-icon">✓</span>
                       Done
                     </button>
-                    <button class="new-payment-btn" (click)="newPayment()">
+                    <button class="secondary-btn" (click)="newPayment()">
+                      <span class="btn-icon">💰</span>
                       New Payment
                     </button>
                   </div>
                 </div>
               }
               
-              <!-- Underpayment state -->
-              @else if (paymentStatus() === 'underpaid') {
-                <div class="underpayment-state">
-                  <div class="underpayment-icon">⚠️</div>
-                  <h2>Payment Failed</h2>
-                  <p>Your payment could not be processed. No funds were debited from your account.</p>
-                  <p>Please try again with the updated quote.</p>
+              <!-- Payment rejected state -->
+              @else if (paymentStatus() === 'rejected') {
+                <div class="rejection-state">
+                  <div class="rejection-icon">❌</div>
+                  <h2>Payment Rejected</h2>
+                  <p class="rejection-message">Your payment could not be processed and was rejected by the gateway.</p>
+                  <p class="retry-instruction">No funds were debited from your account. You can try again with an updated quote.</p>
                   
-                  <div class="payment-summary">
-                    <div class="summary-row">
-                      <span>Required Amount:</span>
+                  <div class="rejection-details">
+                    <div class="detail-row">
+                      <span>Attempted Amount:</span>
                       <span>{{ formatSats(quote()?.from_amount || '0') }} sats</span>
+                    </div>
+                    <div class="detail-row">
+                      <span>Payment Status:</span>
+                      <span class="status-rejected">Rejected</span>
                     </div>
                   </div>
 
@@ -103,8 +145,47 @@ import { QuoteCardComponent } from '../../components/quote-card/quote-card.compo
                     class="retry-payment-btn"
                     (click)="retryPayment()"
                     [disabled]="!walletService.isLoggedInSignal() || processing()">
+                    <span class="btn-icon">🔄</span>
                     Try Payment Again
                   </button>
+                </div>
+              }
+              
+              <!-- Payment already exists state -->
+              @else if (paymentStatus() === 'already_paid') {
+                <div class="already-paid-info-state">
+                  <div class="already-paid-icon">ℹ️</div>
+                  <h2>Payment Already Processed</h2>
+                  <p class="already-paid-message">This payment has already been completed or is currently being processed.</p>
+                  <p class="already-paid-instruction">No additional action is required from your side.</p>
+                  
+                  <div class="already-paid-details">
+                    <div class="detail-row">
+                      <span>Invoice Amount:</span>
+                      <span>{{ formatAmount(invoice()!.amount) }} {{ invoice()!.settlement_asset }}</span>
+                    </div>
+                    <div class="detail-row">
+                      <span>Payment Status:</span>
+                      <span class="status-already-paid">Already Processed</span>
+                    </div>
+                    @if (invoice()!.merchant_order_id && invoice()!.merchant_order_id !== invoice()!.invoice_id) {
+                      <div class="detail-row">
+                        <span>Order Reference:</span>
+                        <span>{{ invoice()!.merchant_order_id }}</span>
+                      </div>
+                    }
+                  </div>
+
+                  <div class="already-paid-actions">
+                    <button class="return-btn" (click)="returnToMerchant()">
+                      <span class="btn-icon">🏠</span>
+                      Return to Merchant
+                    </button>
+                    <button class="new-payment-btn-alt" (click)="newPayment()">
+                      <span class="btn-icon">💰</span>
+                      New Payment
+                    </button>
+                  </div>
                 </div>
               }
               
@@ -392,75 +473,448 @@ import { QuoteCardComponent } from '../../components/quote-card/quote-card.compo
     /* Success State */
     .success-state {
       background: white;
-      border-radius: 12px;
-      padding: 40px;
+      border-radius: 16px;
+      padding: 48px 32px;
       text-align: center;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .success-animation {
+      position: relative;
+      margin-bottom: 32px;
+    }
+
+    .checkmark-container {
+      display: inline-block;
+      position: relative;
+    }
+
+    .checkmark-circle {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #10b981, #059669);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.4);
+      animation: checkmarkPop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    .checkmark {
+      color: white;
+      font-size: 36px;
+      font-weight: bold;
+      animation: checkmarkDraw 0.4s ease-in-out 0.2s both;
+    }
+
+    @keyframes checkmarkPop {
+      0% { transform: scale(0); opacity: 0; }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes checkmarkDraw {
+      0% { opacity: 0; transform: scale(0); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .confetti-container {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 200px;
+      height: 200px;
+      pointer-events: none;
     }
 
     .confetti {
-      font-size: 64px;
-      margin-bottom: 20px;
-      animation: bounce 2s infinite;
+      position: absolute;
+      font-size: 24px;
+      animation: confettiFall 2s ease-in-out infinite;
     }
 
-    @keyframes bounce {
-      0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-      40% { transform: translateY(-10px); }
-      60% { transform: translateY(-5px); }
+    .confetti:nth-child(1) { left: 20%; animation-delay: 0s; }
+    .confetti:nth-child(2) { left: 40%; animation-delay: 0.2s; }
+    .confetti:nth-child(3) { left: 60%; animation-delay: 0.4s; }
+    .confetti:nth-child(4) { left: 80%; animation-delay: 0.6s; }
+    .confetti:nth-child(5) { left: 30%; animation-delay: 0.8s; }
+
+    @keyframes confettiFall {
+      0% { 
+        opacity: 1; 
+        transform: translateY(-20px) rotate(0deg);
+      }
+      50% { 
+        opacity: 0.8; 
+        transform: translateY(60px) rotate(180deg);
+      }
+      100% { 
+        opacity: 0; 
+        transform: translateY(120px) rotate(360deg);
+      }
     }
 
-    .success-state h2 {
-      margin: 0 0 20px 0;
+    .success-title {
       color: #111827;
-      font-size: 28px;
-      font-weight: 700;
-    }
-
-    .amount-paid {
       font-size: 32px;
       font-weight: 700;
-      color: #10b981;
+      margin: 0 0 8px 0;
+      background: linear-gradient(135deg, #10b981, #059669);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .success-subtitle {
+      color: #6b7280;
+      font-size: 16px;
+      margin: 0 0 32px 0;
+    }
+
+    .payment-summary-card {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 24px 0;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .summary-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .summary-row.primary {
+      padding-bottom: 16px;
+      border-bottom: 1px solid #e5e7eb;
       margin-bottom: 16px;
     }
 
-    .tx-info {
-      background: #f9fafb;
-      padding: 12px;
-      border-radius: 6px;
-      margin-bottom: 20px;
+    .summary-row.primary .label {
+      font-size: 16px;
+      font-weight: 600;
+      color: #374151;
     }
 
-    .tx-link {
-      color: #f97316;
-      text-decoration: none;
-      font-family: monospace;
+    .summary-row.primary .value {
+      font-size: 24px;
+      font-weight: 700;
+      color: #10b981;
+    }
+
+    .summary-row .label {
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    .summary-row .value {
+      color: #111827;
       font-weight: 600;
+      font-family: monospace;
+    }
+
+    .tx-display {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tx-short {
+      font-family: monospace;
+      color: #6b7280;
+      font-size: 13px;
+    }
+
+    .view-tx-btn {
+      background: #f3f4f6;
+      color: #374151;
+      text-decoration: none;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .view-tx-btn:hover {
+      background: #e5e7eb;
+      color: #111827;
     }
 
     .success-actions {
       display: flex;
-      gap: 12px;
+      gap: 16px;
+      justify-content: center;
+      margin-top: 32px;
+    }
+
+    .primary-btn,
+    .secondary-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border: none;
+      min-width: 140px;
       justify-content: center;
     }
 
-    .done-btn,
-    .new-payment-btn {
-      padding: 12px 24px;
+    .primary-btn {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.3);
+    }
+
+    .primary-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px 0 rgba(16, 185, 129, 0.4);
+    }
+
+    .secondary-btn {
+      background: #f9fafb;
+      color: #374151;
+      border: 1px solid #e5e7eb;
+    }
+
+    .secondary-btn:hover {
+      background: #f3f4f6;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-icon {
+      font-size: 18px;
+    }
+
+    /* Rejection State */
+    .rejection-state {
+      background: white;
+      border-radius: 12px;
+      padding: 40px;
+      text-align: center;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+      border: 2px solid #fecaca;
+    }
+
+    .rejection-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+      animation: shake 0.5s ease-in-out;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+
+    .rejection-state h2 {
+      color: #dc2626;
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0 0 16px 0;
+    }
+
+    .rejection-message {
+      color: #7f1d1d;
+      font-size: 16px;
+      margin: 0 0 8px 0;
+      line-height: 1.5;
+    }
+
+    .retry-instruction {
+      color: #6b7280;
+      font-size: 14px;
+      margin: 0 0 24px 0;
+      line-height: 1.5;
+    }
+
+    .rejection-details {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
       border-radius: 8px;
+      padding: 16px;
+      margin: 24px 0;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .detail-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .detail-row span:first-child {
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    .detail-row span:last-child {
+      color: #111827;
+      font-weight: 600;
+      font-family: monospace;
+    }
+
+    .status-rejected {
+      color: #dc2626 !important;
+      background: #fecaca;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .retry-payment-btn {
+      background: #f97316;
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 8px;
+      font-size: 16px;
       font-weight: 600;
       cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      justify-content: center;
+      margin: 0 auto;
+    }
+
+    .retry-payment-btn:hover:not(:disabled) {
+      background: #ea580c;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px 0 rgba(249, 115, 22, 0.3);
+    }
+
+    .retry-payment-btn:disabled {
+      background: #d1d5db;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Already Paid Info State */
+    .already-paid-info-state {
+      background: white;
+      border-radius: 12px;
+      padding: 40px;
+      text-align: center;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+      border: 2px solid #dbeafe;
+    }
+
+    .already-paid-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    .already-paid-info-state h2 {
+      color: #1d4ed8;
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0 0 16px 0;
+    }
+
+    .already-paid-message {
+      color: #1e40af;
+      font-size: 16px;
+      margin: 0 0 8px 0;
+      line-height: 1.5;
+    }
+
+    .already-paid-instruction {
+      color: #6b7280;
+      font-size: 14px;
+      margin: 0 0 24px 0;
+      line-height: 1.5;
+    }
+
+    .already-paid-details {
+      background: #eff6ff;
+      border: 1px solid #dbeafe;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 24px 0;
+    }
+
+    .status-already-paid {
+      color: #1d4ed8 !important;
+      background: #dbeafe;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .already-paid-actions {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      margin-top: 32px;
+    }
+
+    .return-btn,
+    .new-payment-btn-alt {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       border: none;
+      min-width: 140px;
+      justify-content: center;
     }
 
-    .done-btn {
-      background: #10b981;
+    .return-btn {
+      background: linear-gradient(135deg, #1d4ed8, #1e40af);
       color: white;
+      box-shadow: 0 4px 14px 0 rgba(29, 78, 216, 0.3);
     }
 
-    .new-payment-btn {
-      background: #f3f4f6;
+    .return-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px 0 rgba(29, 78, 216, 0.4);
+    }
+
+    .new-payment-btn-alt {
+      background: #f9fafb;
       color: #374151;
+      border: 1px solid #e5e7eb;
+    }
+
+    .new-payment-btn-alt:hover {
+      background: #f3f4f6;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.1);
     }
 
     /* Payment Flow */
@@ -819,72 +1273,6 @@ import { QuoteCardComponent } from '../../components/quote-card/quote-card.compo
       border-radius: 6px;
     }
 
-    /* Underpayment State */
-    .underpayment-state {
-      background: white;
-      border-radius: 12px;
-      padding: 40px;
-      text-align: center;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-    }
-
-    .underpayment-icon {
-      font-size: 48px;
-      margin-bottom: 16px;
-    }
-
-    .underpayment-state h2 {
-      margin: 0 0 16px 0;
-      color: #111827;
-      font-size: 24px;
-    }
-
-    .payment-summary {
-      background: #f9fafb;
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
-      padding: 20px;
-      margin: 20px 0;
-    }
-
-    .summary-row {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 8px;
-    }
-
-    .summary-row:last-child {
-      margin-bottom: 0;
-    }
-
-    .summary-row.remaining {
-      font-weight: 600;
-      color: #f97316;
-      border-top: 1px solid #e5e7eb;
-      padding-top: 8px;
-      margin-top: 8px;
-    }
-
-    .retry-payment-btn {
-      background: #f97316;
-      color: white;
-      border: none;
-      padding: 16px 32px;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .retry-payment-btn:hover:not(:disabled) {
-      background: #ea580c;
-    }
-
-    .retry-payment-btn:disabled {
-      background: #d1d5db;
-      cursor: not-allowed;
-    }
-
     /* Other States */
     .expired-state,
     .already-paid-state {
@@ -971,7 +1359,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   error = signal<string | null>(null);
   invoice = signal<Invoice | null>(null);
   quote = signal<Quote | null>(null);
-  paymentStatus = signal<'idle' | 'processing' | 'completed' | 'underpaid'>('idle');
+  paymentStatus = signal<'idle' | 'processing' | 'completed' | 'rejected' | 'already_paid'>('idle');
   processing = signal(false);
   transactionId = signal<string | null>(null);
   errorAction = signal<string | null>(null);
@@ -1182,22 +1570,24 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     switch (response.status) {
       case 'confirmed':
         this.paymentStatus.set('completed');
-        this.transactionId.set(response.transaction_id || null);
+        this.transactionId.set(response.tx_id || response.transaction_id || response.payment_id || null);
         this.toastService.success('Payment Successful!', 'Your payment has been confirmed');
         // Reload invoice to get updated status
         this.loadInvoice();
         break;
         
-      case 'accepted':
-        this.transactionId.set(response.payment_id || null);
-        this.toastService.info('Payment Submitted', 'Waiting for confirmation...');
-        // Start polling for confirmation
-        this.pollPaymentStatus();
-        break;
-        
       case 'rejected':
         this.paymentStatus.set('idle');
-        this.toastService.error('Payment Failed', 'Transaction was rejected');
+        this.toastService.error('Payment Rejected', 'Your payment was rejected. Please try again with a new quote.');
+        // Refresh quote to get updated rates
+        this.refreshQuoteQuietly();
+        break;
+        
+      default:
+        // Handle any unexpected status as rejected
+        this.paymentStatus.set('idle');
+        this.toastService.error('Payment Failed', 'An unexpected error occurred. Please try again.');
+        this.refreshQuoteQuietly();
         break;
     }
   }
@@ -1205,10 +1595,17 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   private handlePaymentError(error: any) {
     this.processing.set(false);
     
+    // Check if the error indicates payment already exists
+    if (error.error === 'payment_already_exists' || error.message?.includes('Payment already exists')) {
+      this.paymentStatus.set('already_paid');
+      // Don't show toast notification - just display on screen
+      return;
+    }
+    
     if (error.statusCode === 412) {
-      // Underpayment - no funds debited, user can try again
-      this.paymentStatus.set('underpaid');
-      this.toastService.warning('Payment Failed', 'No funds were debited. Please try again.');
+      // Payment rejected - no funds debited, user can try again
+      this.paymentStatus.set('rejected');
+      this.toastService.warning('Payment Rejected', 'No funds were debited. Please try again.');
       // Refresh quote for retry
       this.refreshQuoteQuietly();
     } else if (error.statusCode === 409) {
@@ -1216,8 +1613,10 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       this.toastService.error('Payment Error', 'Invoice already paid or expired');
       this.loadInvoice(); // Refresh to show current status
     } else {
-      this.paymentStatus.set('idle');
-      this.toastService.error('Payment Failed', error.message || 'Failed to process payment');
+      this.paymentStatus.set('rejected');
+      this.toastService.error('Payment Rejected', error.message || 'Failed to process payment');
+      // Refresh quote for retry
+      this.refreshQuoteQuietly();
     }
   }
 
@@ -1262,7 +1661,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     };
 
     // Simulate different outcomes
-    const outcomes = ['success', 'underpaid', 'error'];
+    const outcomes = ['success', 'rejected', 'error', 'already_exists'];
     const outcome = outcomes[Math.floor(Math.random() * outcomes.length)];
 
     await new Promise(resolve => setTimeout(resolve, 1500));
@@ -1274,10 +1673,18 @@ export class CheckoutComponent implements OnInit, OnDestroy {
         this.toastService.success('Payment Successful!', 'Your payment has been confirmed');
         break;
       
-      case 'underpaid':
-        this.paymentStatus.set('underpaid');
+      case 'rejected':
+        this.paymentStatus.set('rejected');
         this.processing.set(false);
-        this.toastService.warning('Payment Failed', 'No funds were debited. Please try again.');
+        this.toastService.warning('Payment Rejected', 'No funds were debited. Please try again.');
+        break;
+
+      case 'already_exists':
+        // Simulate the payment_already_exists error
+        this.handlePaymentError({
+          error: 'payment_already_exists',
+          message: 'Payment already exists or being processed'
+        });
         break;
       
       case 'error':

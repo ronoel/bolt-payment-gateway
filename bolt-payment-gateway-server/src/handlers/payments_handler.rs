@@ -6,7 +6,7 @@ use axum::{
 };
 
 use crate::{models::{
-    convert_string_to_object_id, ErrorResponse, Invoice, InvoiceStatus, Payment, PaymentResponse, PaymentStatus, SubmitPaymentRequest
+    convert_string_to_object_id, ErrorResponse, InvoiceStatus, Payment, PaymentResponse, PaymentStatus, SubmitPaymentRequest
 }, shared::calculate_satoshis_for_usd_with_spread, AppState};
 
 /// Submit a payment transaction for an invoice
@@ -212,7 +212,7 @@ pub async fn submit_payment(
         }
     };
 
-    match app_state.invoice_repository.update_status(&invoice.id.to_string(), InvoiceStatus::Paid).await {
+    match app_state.invoice_repository.update_status(&object_id, InvoiceStatus::Paid).await {
         Ok(_) => (),
         Err(e) => {
             tracing::error!("Failed to update invoice status to Paid: {}", e);
