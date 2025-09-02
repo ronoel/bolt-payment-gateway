@@ -354,7 +354,7 @@ import { QuoteCardComponent } from '../../components/quote-card/quote-card.compo
                               } @else if (balanceLoading()) {
                                 ⏳ Checking Balance...
                               } @else {
-                                💰 Pay with sBTC
+                                Pay with sBTC
                               }
                             </button>
                           }
