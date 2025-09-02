@@ -167,7 +167,7 @@ pub async fn submit_payment(
     let response = app_state.bolt_protocol_service.broadcast_transaction(
         request.serialized_transaction, 
         amount, 
-        "AKLDHF".to_string()
+        "ST3QZNX3CGT6V7PE1PBK17FCRK1TP1AT02W1N0YJF".to_string()
     ).await;
     
     let bolt_response = match response {

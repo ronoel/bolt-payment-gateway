@@ -217,7 +217,7 @@ export class GatewayService {
       map((serialized_transaction: string) => {
         const request: SubmitPaymentRequest = {
           serialized_transaction: serialized_transaction,
-          asset: 'BTC',
+          asset: 'sBTC',
           amount: amount
         };
         return request;
