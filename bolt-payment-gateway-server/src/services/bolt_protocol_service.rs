@@ -80,7 +80,8 @@ impl BoltProtocolService {
                 .text()
                 .await
                 .unwrap_or_else(|_| "Unknown error".to_string());
-            let error_response = ErrorResponse::from(error_text);
+            let error_response = ErrorResponse::from(error_text.clone());
+            tracing::error!("BoltProtocolService broadcast_transaction error - status: {}, body: {}", status, error_text);
             Err((status, Json(error_response)))
         }
     }

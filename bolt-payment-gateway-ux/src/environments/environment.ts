@@ -20,7 +20,7 @@ export const environment = {
             name: 'sBTC',
             symbol: 'sBTC',
             image: 'https://ipfs.io/ipfs/bafkreiffe46h5voimvulxm2s4ddszdm4uli4rwcvx34cgzz3xkfcc2hiwi',
-            fee: 20 // sats
+            fee: 200 // sats
         }
     }
 };

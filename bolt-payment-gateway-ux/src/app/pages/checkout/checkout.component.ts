@@ -330,7 +330,7 @@ import { BoltProtocolService } from '../../services/bolt-protocol.service';
                                 <p>You need {{ formatSats(quote()!.from_amount) }} sats but only have {{ getBalanceDisplaySats() }} sats available.</p>
                                 <p>Transfer your sBTC to Bolt Wallet to complete this payment.</p>
                                 <a 
-                                  href="https://boltproto.org/wallet" 
+                                  href="https://test.boltproto.org/wallet" 
                                   target="_blank" 
                                   class="bolt-wallet-link">
                                   Open Bolt Wallet →

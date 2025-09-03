@@ -174,7 +174,7 @@ pub async fn submit_payment(
         Ok(res) => res,
         Err(e) => {
             tracing::error!("Failed to broadcast transaction: {:?}", e);
-            
+
             // Update payment status to Rejected
             if let Err(update_err) = app_state.payment_repository.update_status(&payment.id, PaymentStatus::Rejected).await {
                 tracing::error!("Failed to update payment status to Rejected: {}", update_err);

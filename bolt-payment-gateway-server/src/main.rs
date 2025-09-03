@@ -34,7 +34,7 @@ async fn main() {
         .unwrap_or_else(|_| "mongodb://localhost:27017".to_string());
     
     let database_name = env::var("DATABASE_NAME")
-        .unwrap_or_else(|_| "bolt_payment_gateway".to_string());
+        .unwrap_or_else(|_| "bolt_payment_gateway-dev".to_string());
 
     // Initialize MongoDB client
     let mongodb_client = MongoDBClient::new(&mongodb_uri, &database_name)
