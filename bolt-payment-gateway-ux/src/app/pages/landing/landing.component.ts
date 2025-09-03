@@ -38,13 +38,13 @@ import { WalletService } from '../../services/wallet.service';
           <div class="hero-content">
             <div class="hero-text">
               <div class="hero-badge">
-                <span class="badge badge-primary">✨ Modern Bitcoin Payments</span>
+                <span class="badge badge-primary">⚡ Instant Bitcoin Payments</span>
               </div>
               <h1 class="hero-title">
-                Accept Bitcoin (sBTC) payments like a professional
+                Set prices in USD, receive in sBTC, guaranteed value
               </h1>
               <p class="hero-subtitle">
-                Professional point-of-sale system with instant QR codes, real-time tracking, and secure wallet authentication. Built for serious merchants.
+                You define prices in USD and receive exactly that value. Your customers pay with Bitcoin and get instant conversion rates. No volatility risk for merchants, best rates for customers.
               </p>
               <div class="hero-actions">
                 @if (!walletService.isLoggedInSignal()) {
@@ -68,16 +68,16 @@ import { WalletService } from '../../services/wallet.service';
               </div>
               <div class="hero-stats">
                 <div class="stat">
+                  <div class="stat-value">💲</div>
+                  <div class="stat-label">USD Pricing</div>
+                </div>
+                <div class="stat">
                   <div class="stat-value">⚡</div>
-                  <div class="stat-label">Instant</div>
+                  <div class="stat-label">Instant Conversion</div>
                 </div>
                 <div class="stat">
-                  <div class="stat-value">🔒</div>
-                  <div class="stat-label">Secure</div>
-                </div>
-                <div class="stat">
-                  <div class="stat-value">📱</div>
-                  <div class="stat-label">Mobile-First</div>
+                  <div class="stat-value">�️</div>
+                  <div class="stat-label">Zero Volatility</div>
                 </div>
               </div>
             </div>
@@ -137,24 +137,24 @@ import { WalletService } from '../../services/wallet.service';
               <p>Monitor payments live with automatic status updates and comprehensive analytics.</p>
             </div>
             <div class="feature-card">
-              <div class="feature-icon">🛡️</div>
-              <h3>Enterprise Security</h3>
-              <p>Wallet-based authentication with cryptographic signatures for maximum security.</p>
-            </div>
-            <div class="feature-card">
-              <div class="feature-icon">📱</div>
-              <h3>Mobile Optimized</h3>
-              <p>Perfect for point-of-sale with touch-friendly interfaces and numpad input.</p>
-            </div>
-            <div class="feature-card">
-              <div class="feature-icon">🔗</div>
-              <h3>Easy Integration</h3>
-              <p>Simple sharing via QR codes, links, or direct wallet connections.</p>
+              <div class="feature-icon">�</div>
+              <h3>USD Price Guarantee</h3>
+              <p>Set prices in USD and receive exactly that value in sBTC. No volatility risk for merchants.</p>
             </div>
             <div class="feature-card">
               <div class="feature-icon">⚡</div>
-              <h3>Bitcoin Native</h3>
-              <p>Built specifically for Bitcoin (sBTC) with Stacks blockchain integration.</p>
+              <h3>Instant Conversion</h3>
+              <p>Bolt Protocol enables real-time USD to sBTC conversion at the moment of payment.</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">�</div>
+              <h3>Best Rates for Customers</h3>
+              <p>Customers get optimal exchange rates with instant confirmation through Bolt Protocol.</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">🛡️</div>
+              <h3>Enterprise Security</h3>
+              <p>Wallet-based authentication with cryptographic signatures for maximum security.</p>
             </div>
           </div>
         </div>
@@ -165,7 +165,7 @@ import { WalletService } from '../../services/wallet.service';
         <div class="container">
           <div class="how-it-works-header">
             <h2 class="section-title">How it works</h2>
-            <p class="section-subtitle">Start accepting Bitcoin payments in three simple steps</p>
+            <p class="section-subtitle">Secure USD pricing with Bitcoin payments and instant conversion</p>
           </div>
           <div class="steps">
             <div class="step">
@@ -174,11 +174,11 @@ import { WalletService } from '../../services/wallet.service';
                 <div class="step-connector"></div>
               </div>
               <div class="step-content">
-                <h3>Connect & Create</h3>
-                <p>Connect your Bitcoin wallet and create payment requests using our intuitive interface with numpad input.</p>
+                <h3>Set USD Price</h3>
+                <p>Define your product or service price in USD. The system guarantees you'll receive exactly this value.</p>
                 <div class="step-features">
-                  <span class="feature-tag">Wallet Authentication</span>
-                  <span class="feature-tag">Quick Setup</span>
+                  <span class="feature-tag">USD Pricing</span>
+                  <span class="feature-tag">Zero Volatility Risk</span>
                 </div>
               </div>
             </div>
@@ -188,11 +188,11 @@ import { WalletService } from '../../services/wallet.service';
                 <div class="step-connector"></div>
               </div>
               <div class="step-content">
-                <h3>Share & Display</h3>
-                <p>Generate instant QR codes and shareable links. Perfect for in-person transactions or remote payments.</p>
+                <h3>Customer Pays in sBTC</h3>
+                <p>Customer scans QR code and pays with sBTC. Bolt Protocol immediately confirms the transaction for conversion rate in real-time.</p>
                 <div class="step-features">
-                  <span class="feature-tag">QR Codes</span>
-                  <span class="feature-tag">Short Links</span>
+                  <span class="feature-tag">Instant Rates</span>
+                  <span class="feature-tag">QR Payment</span>
                 </div>
               </div>
             </div>
@@ -201,11 +201,11 @@ import { WalletService } from '../../services/wallet.service';
                 <div class="step-number">3</div>
               </div>
               <div class="step-content">
-                <h3>Track & Receive</h3>
-                <p>Monitor payments in real-time with live status updates and automatic confirmations.</p>
+                <h3>Receive Guaranteed USD Value</h3>
+                <p>You receive the exact USD value you set, converted from sBTC at the moment of payment. No surprises, no volatility risk.</p>
                 <div class="step-features">
-                  <span class="feature-tag">Live Tracking</span>
-                  <span class="feature-tag">Auto-Confirm</span>
+                  <span class="feature-tag">Guaranteed Value</span>
+                  <span class="feature-tag">Instant Settlement</span>
                 </div>
               </div>
             </div>
@@ -219,8 +219,8 @@ import { WalletService } from '../../services/wallet.service';
           @if (!walletService.isLoggedInSignal()) {
             <div class="connect-content">
               <div class="connect-header">
-                <h2>Ready to start accepting Bitcoin?</h2>
-                <p>Connect your wallet to access the professional merchant dashboard</p>
+                <h2>Ready to receive payments in sBTC?</h2>
+                <p>Connect your wallet and start accepting Bitcoin payments with zero volatility risk</p>
               </div>
               <div class="connect-card">
                 <app-wallet-connect-button 
@@ -243,7 +243,7 @@ import { WalletService } from '../../services/wallet.service';
                 </svg>
               </div>
               <h2>You're all set!</h2>
-              <p>Your wallet is connected. Ready to start accepting Bitcoin payments?</p>
+              <p>Your wallet is connected. Ready to start setting USD prices and receiving guaranteed value in sBTC?</p>
               <a routerLink="/dashboard" class="btn btn-primary btn-lg">
                 <span>Open Dashboard</span>
                 <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -267,7 +267,7 @@ import { WalletService } from '../../services/wallet.service';
                   </div>
                   <span>Bolt Payment Gateway</span>
                 </div>
-                <p>Professional Bitcoin payment processing for modern businesses.</p>
+                <p>Bitcoin payment processing for modern businesses.</p>
                 <div class="social-links">
                   <a href="#" class="social-link" aria-label="GitHub">
                     <svg fill="currentColor" viewBox="0 0 24 24">
@@ -307,7 +307,7 @@ import { WalletService } from '../../services/wallet.service';
               </div>
             </div>
             <div class="footer-bottom">
-              <p>&copy; 2025 Bolt Payment Gateway. Built for the Bitcoin ecosystem.</p>
+              <p>&copy; 2025 Bolt Payment Gateway. Built for the Stacks ecosystem.</p>
               <div class="footer-legal">
                 <a href="#" class="legal-link">Privacy Policy</a>
                 <a href="#" class="legal-link">Terms of Service</a>
