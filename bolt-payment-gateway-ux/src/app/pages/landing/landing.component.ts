@@ -44,7 +44,7 @@ import { WalletService } from '../../services/wallet.service';
                 Set prices in USD, receive in sBTC, guaranteed value
               </h1>
               <p class="hero-subtitle">
-                You define prices in USD and receive exactly that value. Your customers pay with Bitcoin and get instant conversion rates through Bolt Protocol with guaranteed real-time confirmation - no network congestion risks.
+                Perfect for retail, restaurants, e-commerce and services that need instant payment confirmation. You define prices in USD and receive exactly that value through Bolt Protocol with guaranteed real-time confirmation.
               </p>
               <div class="hero-actions">
                 @if (!walletService.isLoggedInSignal()) {
@@ -122,8 +122,8 @@ import { WalletService } from '../../services/wallet.service';
       <section class="features">
         <div class="container">
           <div class="features-header">
-            <h2 class="section-title">Everything you need to accept Bitcoin</h2>
-            <p class="section-subtitle">Professional-grade payment processing designed for modern businesses</p>
+            <h2 class="section-title">Perfect for businesses requiring instant payment confirmation</h2>
+            <p class="section-subtitle">Retail stores, restaurants, e-commerce, and service providers who need real-time payment validation</p>
           </div>
           <div class="features-grid">
             <div class="feature-card">
@@ -213,14 +213,46 @@ import { WalletService } from '../../services/wallet.service';
         </div>
       </section>
 
+      <!-- Use Cases Section -->
+      <section class="use-cases">
+        <div class="container">
+          <div class="use-cases-header">
+            <h2 class="section-title">Ideal for businesses that need instant confirmation</h2>
+            <p class="section-subtitle">Don't let slow confirmations hurt your business operations</p>
+          </div>
+          <div class="use-cases-grid">
+            <div class="use-case-card">
+              <div class="use-case-icon">🏪</div>
+              <h3>Retail Stores</h3>
+              <p>Point-of-sale transactions require immediate confirmation. Customers can't wait 10-60 minutes for Bitcoin network validation.</p>
+            </div>
+            <div class="use-case-card">
+              <div class="use-case-icon">🍽️</div>
+              <h3>Restaurants & Cafés</h3>
+              <p>Fast-paced service environments need instant payment validation to maintain customer flow and operational efficiency.</p>
+            </div>
+            <div class="use-case-card">
+              <div class="use-case-icon">🛒</div>
+              <h3>E-commerce</h3>
+              <p>Online stores need real-time payment confirmation to process orders, update inventory, and provide immediate purchase confirmation.</p>
+            </div>
+            <div class="use-case-card">
+              <div class="use-case-icon">🚚</div>
+              <h3>Service Providers</h3>
+              <p>Delivery services, ride-sharing, and on-demand businesses require instant payment verification for immediate service activation.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- Connect Section -->
       <section class="connect-section" id="connect">
         <div class="container">
           @if (!walletService.isLoggedInSignal()) {
             <div class="connect-content">
               <div class="connect-header">
-                <h2>Ready to receive payments in sBTC?</h2>
-                <p>Connect your wallet and start accepting Bitcoin payments with zero volatility risk</p>
+                <h2>Ready to eliminate payment confirmation delays?</h2>
+                <p>Join retail stores, restaurants, and e-commerce businesses using instant Bitcoin payments</p>
               </div>
               <div class="connect-card">
                 <app-wallet-connect-button 
@@ -762,6 +794,65 @@ import { WalletService } from '../../services/wallet.service';
       font-weight: var(--font-weight-medium);
     }
 
+    /* Use Cases Section */
+    .use-cases {
+      padding: var(--space-24) 0;
+      background: var(--color-neutral-50);
+    }
+
+    .use-cases-header {
+      text-align: center;
+      margin-bottom: var(--space-16);
+    }
+
+    .use-cases-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: var(--space-8);
+      margin-top: var(--space-12);
+    }
+
+    .use-case-card {
+      background: white;
+      padding: var(--space-8);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--color-neutral-200);
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .use-case-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--color-primary-200);
+    }
+
+    .use-case-icon {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, var(--color-primary-100), var(--color-primary-200));
+      border-radius: var(--radius-xl);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      margin: 0 auto var(--space-6) auto;
+    }
+
+    .use-case-card h3 {
+      font-size: var(--font-size-xl);
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-neutral-900);
+      margin: 0 0 var(--space-4) 0;
+    }
+
+    .use-case-card p {
+      color: var(--color-neutral-600);
+      line-height: var(--line-height-relaxed);
+      margin: 0;
+    }
+
     /* Connect Section */
     .connect-section {
       background: linear-gradient(135deg, var(--color-neutral-900) 0%, var(--color-neutral-800) 100%);
@@ -999,6 +1090,11 @@ import { WalletService } from '../../services/wallet.service';
         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       }
 
+      .use-cases-grid {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: var(--space-6);
+      }
+
       .footer-main {
         grid-template-columns: 1fr;
         gap: var(--space-12);
@@ -1051,6 +1147,15 @@ import { WalletService } from '../../services/wallet.service';
 
       .steps {
         grid-template-columns: 1fr;
+      }
+
+      .use-cases {
+        padding: var(--space-16) 0;
+      }
+
+      .use-cases-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-4);
       }
 
       .step {

@@ -385,6 +385,20 @@ export class InvoiceTableComponent {
       return '';
     }
     const date = new Date(dateString);
-    return isNaN(date.getTime()) ? '' : date.toLocaleDateString();
+    if (isNaN(date.getTime())) {
+      return '';
+    }
+    
+    // Format as: MM/DD/YYYY HH:MM
+    const options: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    };
+    
+    return date.toLocaleDateString('en-US', options).replace(',', '');
   }
 }

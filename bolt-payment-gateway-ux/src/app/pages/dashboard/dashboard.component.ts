@@ -583,13 +583,22 @@ export class DashboardComponent implements OnInit {
     const params = {
       ...this.currentFilters,
       limit: this.pagination().limit,
-      offset: this.pagination().offset
+      offset: this.pagination().offset,
+      sort: 'created_at',
+      order: 'desc' as const
     };
 
     this.gatewayService.listInvoices(walletAddress, params)
       .subscribe({
         next: (response) => {
-          this.invoices.set(response.items);
+          // Sort invoices by created_at descending (most recent first)
+          const sortedInvoices = response.items.sort((a, b) => {
+            const dateA = new Date(a.created_at).getTime();
+            const dateB = new Date(b.created_at).getTime();
+            return dateB - dateA; // Descending order
+          });
+          
+          this.invoices.set(sortedInvoices);
           this.pagination.set({
             total: response.total,
             limit: response.limit,

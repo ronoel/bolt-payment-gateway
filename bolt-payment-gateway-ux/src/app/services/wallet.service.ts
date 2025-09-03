@@ -79,7 +79,7 @@ export class WalletService {
     disconnect();
     this.isLoggedInSignal.set(false);
     this.userAddressSignal.set(null);
-    this.router.navigate(['/']);
+    // this.router.navigate(['/']);
   }
 
   /**

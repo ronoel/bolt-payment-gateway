@@ -269,8 +269,16 @@ import { QuoteCardComponent } from '../../components/quote-card/quote-card.compo
                       } @else {
                         <div class="payment-ready">
                           <div class="wallet-connected">
-                            <span class="wallet-address">{{ getShortAddress() }}</span>
-                            <span class="connected-badge">Connected</span>
+                            <div class="wallet-info">
+                              <span class="wallet-address">{{ getShortAddress() }}</span>
+                              <span class="connected-badge">Connected</span>
+                            </div>
+                            <button 
+                              class="disconnect-btn"
+                              (click)="disconnectWallet()"
+                              title="Disconnect wallet">
+                              🔌 Disconnect
+                            </button>
                           </div>
 
                           <!-- Wallet Balance Display -->
@@ -1093,13 +1101,18 @@ import { QuoteCardComponent } from '../../components/quote-card/quote-card.compo
     .wallet-connected {
       display: flex;
       align-items: center;
-      gap: 12px;
-      justify-content: center;
+      justify-content: space-between;
       margin-bottom: 24px;
       padding: 16px;
       background: #f0fdf4;
       border-radius: 8px;
       border: 1px solid #bbf7d0;
+    }
+
+    .wallet-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
 
     .wallet-icon {
@@ -1109,6 +1122,27 @@ import { QuoteCardComponent } from '../../components/quote-card/quote-card.compo
     .wallet-address {
       font-family: monospace;
       color: #374151;
+    }
+
+    .disconnect-btn {
+      background: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .disconnect-btn:hover {
+      background: #fee2e2;
+      border-color: #fca5a5;
+      transform: translateY(-1px);
     }
 
     .connected-badge {
@@ -1363,7 +1397,18 @@ import { QuoteCardComponent } from '../../components/quote-card/quote-card.compo
 
       .wallet-connected {
         flex-direction: column;
-        gap: 8px;
+        gap: 12px;
+        align-items: stretch;
+      }
+
+      .wallet-info {
+        justify-content: center;
+      }
+
+      .disconnect-btn {
+        align-self: center;
+        font-size: 11px;
+        padding: 5px 10px;
       }
     }
   `]
@@ -1501,6 +1546,14 @@ export class CheckoutComponent implements OnInit, OnDestroy {
 
   onWalletError(error: any) {
     this.toastService.error('Connection Failed', 'Failed to connect wallet');
+  }
+
+  disconnectWallet() {
+    this.walletService.signOut();
+    this.walletBalance.set(null);
+    this.hasInsufficientBalance.set(false);
+    this.paymentStatus.set('idle');
+    this.toastService.info('Wallet Disconnected', 'You can reconnect to make a payment');
   }
 
   async checkBalance() {

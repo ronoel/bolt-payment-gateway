@@ -68,6 +68,8 @@ export interface ListInvoicesParams {
   to_date?: string;
   limit?: number;
   offset?: number;
+  sort?: string;
+  order?: 'asc' | 'desc';
 }
 
 export interface QuoteParams {
@@ -169,6 +171,12 @@ export class GatewayService {
       }
       if (params.offset !== undefined) {
         httpParams = httpParams.set('offset', params.offset.toString());
+      }
+      if (params.sort) {
+        httpParams = httpParams.set('sort', params.sort);
+      }
+      if (params.order) {
+        httpParams = httpParams.set('order', params.order);
       }
     }
 
