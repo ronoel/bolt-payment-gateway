@@ -38,13 +38,13 @@ import { WalletService } from '../../services/wallet.service';
           <div class="hero-content">
             <div class="hero-text">
               <div class="hero-badge">
-                <span class="badge badge-primary">⚡ Instant Bitcoin Payments</span>
+                <span class="badge badge-primary">⚡ Instant Confirmation • Zero Congestion</span>
               </div>
               <h1 class="hero-title">
                 Set prices in USD, receive in sBTC, guaranteed value
               </h1>
               <p class="hero-subtitle">
-                You define prices in USD and receive exactly that value. Your customers pay with Bitcoin and get instant conversion rates. No volatility risk for merchants, best rates for customers.
+                You define prices in USD and receive exactly that value. Your customers pay with Bitcoin and get instant conversion rates through Bolt Protocol with guaranteed real-time confirmation - no network congestion risks.
               </p>
               <div class="hero-actions">
                 @if (!walletService.isLoggedInSignal()) {
@@ -73,7 +73,7 @@ import { WalletService } from '../../services/wallet.service';
                 </div>
                 <div class="stat">
                   <div class="stat-value">⚡</div>
-                  <div class="stat-label">Instant Conversion</div>
+                  <div class="stat-label">Instant Confirmation</div>
                 </div>
                 <div class="stat">
                   <div class="stat-value">�️</div>
@@ -137,14 +137,14 @@ import { WalletService } from '../../services/wallet.service';
               <p>Monitor payments live with automatic status updates and comprehensive analytics.</p>
             </div>
             <div class="feature-card">
-              <div class="feature-icon">�</div>
+              <div class="feature-icon">🔄</div>
               <h3>USD Price Guarantee</h3>
               <p>Set prices in USD and receive exactly that value in sBTC. No volatility risk for merchants.</p>
             </div>
             <div class="feature-card">
               <div class="feature-icon">⚡</div>
-              <h3>Instant Conversion</h3>
-              <p>Bolt Protocol enables real-time USD to sBTC conversion at the moment of payment.</p>
+              <h3>Instant Confirmation</h3>
+              <p>Bolt Protocol ensures real-time payment confirmation with no network congestion risks or delays.</p>
             </div>
             <div class="feature-card">
               <div class="feature-icon">�</div>
@@ -189,10 +189,10 @@ import { WalletService } from '../../services/wallet.service';
               </div>
               <div class="step-content">
                 <h3>Customer Pays in sBTC</h3>
-                <p>Customer scans QR code and pays with sBTC. Bolt Protocol immediately confirms the transaction for conversion rate in real-time.</p>
+                <p>Customer scans QR code and pays with sBTC. Bolt Protocol provides instant confirmation with zero network congestion risk.</p>
                 <div class="step-features">
-                  <span class="feature-tag">Instant Rates</span>
-                  <span class="feature-tag">QR Payment</span>
+                  <span class="feature-tag">Instant Confirmation</span>
+                  <span class="feature-tag">No Congestion</span>
                 </div>
               </div>
             </div>
