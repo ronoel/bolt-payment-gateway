@@ -46,7 +46,7 @@ impl BoltProtocolService {
     pub fn new() -> Self {
         let client = reqwest::Client::new();
         BoltProtocolService {
-            base_url: "http://localhost:3000".to_string(),
+            base_url: "https://test.boltproto.org".to_string(),
             client,
         }
     }

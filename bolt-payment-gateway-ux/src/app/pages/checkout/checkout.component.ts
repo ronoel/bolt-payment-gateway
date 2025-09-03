@@ -1,13 +1,14 @@
 import { Component, inject, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, firstValueFrom } from 'rxjs';
 import { GatewayService, Invoice, Quote, SubmitPaymentRequest } from '../../services/gateway.service';
 import { WalletService } from '../../services/wallet.service';
 import { ToastService } from '../../services/toast.service';
 import { sBTCTokenService } from '../../services/sbtc-token.service';
 import { WalletConnectButtonComponent } from '../../components/wallet-connect-button/wallet-connect-button.component';
 import { QuoteCardComponent } from '../../components/quote-card/quote-card.component';
+import { BoltProtocolService } from '../../services/bolt-protocol.service';
 
 @Component({
   selector: 'app-checkout',
@@ -284,7 +285,7 @@ import { QuoteCardComponent } from '../../components/quote-card/quote-card.compo
                           <!-- Wallet Balance Display -->
                           <div class="balance-section">
                             <div class="balance-header">
-                              <h4>Wallet Balance</h4>
+                              <h4>Bolt Wallet Balance</h4>
                               <button 
                                 class="refresh-balance-btn"
                                 (click)="checkBalance()"
@@ -1419,7 +1420,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   private gatewayService = inject(GatewayService);
   walletService = inject(WalletService);
   private toastService = inject(ToastService);
-  private sbtcService = inject(sBTCTokenService);
+  private boltProtocolService = inject(BoltProtocolService);
   private destroy$ = new Subject<void>();
   private quoteRefreshInterval: any = null;
 
@@ -1564,8 +1565,15 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     this.balanceLoading.set(true);
     
     try {
-      const balance = await this.sbtcService.getBalance().toPromise();
-      this.walletBalance.set(balance ? Number(balance) : 0);
+      const address = this.walletService.getSTXAddress();
+      if (!address) {
+        throw new Error('No wallet address available');
+      }
+      
+      const walletBalance = await firstValueFrom(this.boltProtocolService.getWalletBalance(address, 'sBTC'));
+      console.log('Wallet balance:', walletBalance.balance);
+      console.log('Wallet Address:', this.walletService.getWalletData());
+      this.walletBalance.set(parseInt(walletBalance.balance.toString()));
       this.checkBalanceSufficiency();
     } catch (error) {
       console.warn('Failed to load wallet balance:', error);
