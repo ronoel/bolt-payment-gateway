@@ -31,8 +31,10 @@ async fn main() {
 
     // Get MongoDB connection string from environment or use default
     let mongodb_uri = env::var("MONGODB_URI")
-        .unwrap_or_else(|_| "mongodb://localhost:27017".to_string());
+        .unwrap_or_else(|_| "mongodb://mongo:27017".to_string());
+                // .unwrap_or_else(|_| "mongodb://localhost:27017".to_string());
     
+
     let database_name = env::var("DATABASE_NAME")
         .unwrap_or_else(|_| "bolt_payment_gateway-dev".to_string());
 
@@ -68,7 +70,9 @@ async fn main() {
     
     let app = Router::new()
         .route("/health", get(health_check))
-        .nest("/v1", routes)
+        .route("/", get(root_health_check))
+        .route("/apipaymentgateway/", get(api_health_check))
+        .nest("/apipaymentgateway/v1", routes)
         .with_state(app_state)
         .layer(
             ServiceBuilder::new()
@@ -86,4 +90,12 @@ async fn main() {
 
 async fn health_check() -> &'static str {
     "OK"
+}
+
+async fn root_health_check() -> &'static str {
+    "Payment Gateway OK"
+}
+
+async fn api_health_check() -> &'static str {
+    "API Gateway OK"
 }
