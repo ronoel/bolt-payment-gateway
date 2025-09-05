@@ -39,8 +39,8 @@ impl InvoiceRepository {
         Ok(invoices)
     }
 
-    pub async fn update_status(&self, invoice_id: &str, status: crate::models::InvoiceStatus) -> Result<bool> {
-        let filter = doc! { "invoice_id": invoice_id };
+    pub async fn update_status(&self, invoice_id: &bson::oid::ObjectId, status: crate::models::InvoiceStatus) -> Result<bool> {
+        let filter = doc! { "_id": invoice_id };
         let update = doc! { "$set": { "status": bson::to_bson(&status)? } };
         
         let result = self.collection.update_one(filter, update).await?;

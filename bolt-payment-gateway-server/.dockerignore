@@ -1,0 +1,9 @@
+target/
+**/*.rs.bk
+**/*.toml.bk
+**/*.log
+**/*.env
+**/Cargo.lock
+**/README.md
+**/Dockerfile
+**/.dockerignore

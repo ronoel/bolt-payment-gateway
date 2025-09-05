@@ -12,13 +12,16 @@ use tower_http::{cors::CorsLayer, trace::TraceLayer};
 use tracing_subscriber;
 use std::env;
 
-use database::{MongoDBClient, InvoiceRepository};
+use database::{MongoDBClient, InvoiceRepository, PaymentRepository};
 use services::quote_service::QuoteService;
+use services::bolt_protocol_service::BoltProtocolService;
 
 #[derive(Clone)]
 pub struct AppState {
     pub invoice_repository: InvoiceRepository,
+    pub payment_repository: PaymentRepository,
     pub quote_service: QuoteService,
+    pub bolt_protocol_service: BoltProtocolService,
 }
 
 #[tokio::main]
@@ -28,10 +31,12 @@ async fn main() {
 
     // Get MongoDB connection string from environment or use default
     let mongodb_uri = env::var("MONGODB_URI")
-        .unwrap_or_else(|_| "mongodb://localhost:27017".to_string());
+        .unwrap_or_else(|_| "mongodb://mongo:27017".to_string());
+                // .unwrap_or_else(|_| "mongodb://localhost:27017".to_string());
     
+
     let database_name = env::var("DATABASE_NAME")
-        .unwrap_or_else(|_| "bolt_payment_gateway".to_string());
+        .unwrap_or_else(|_| "bolt_payment_gateway-dev".to_string());
 
     // Initialize MongoDB client
     let mongodb_client = MongoDBClient::new(&mongodb_uri, &database_name)
@@ -40,14 +45,24 @@ async fn main() {
 
     // Initialize repositories
     let invoice_repository = InvoiceRepository::new(mongodb_client.get_database());
+    let payment_repository = PaymentRepository::new(mongodb_client.get_database());
+
+    // Create indexes for payments
+    if let Err(e) = payment_repository.create_indexes().await {
+        eprintln!("Failed to create payment indexes: {}", e);
+        std::process::exit(1);
+    }
 
     // Initialize services
     let quote_service = QuoteService::new();
+    let bolt_protocol_service = BoltProtocolService::new();
 
     // Create application state
     let app_state = AppState {
         invoice_repository,
+        payment_repository,
         quote_service,
+        bolt_protocol_service,
     };
 
     // Build our application with routes
@@ -55,7 +70,9 @@ async fn main() {
     
     let app = Router::new()
         .route("/health", get(health_check))
-        .nest("/v1", routes)
+        .route("/", get(root_health_check))
+        .route("/apipaymentgateway/", get(api_health_check))
+        .nest("/apipaymentgateway/v1", routes)
         .with_state(app_state)
         .layer(
             ServiceBuilder::new()
@@ -64,8 +81,8 @@ async fn main() {
         );
 
     // Run the server
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
-    println!("🚀 Server running on http://0.0.0.0:3000");
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:4000").await.unwrap();
+    println!("🚀 Server running on http://0.0.0.0:4000");
     println!("📊 Connected to MongoDB at: {}", mongodb_uri);
     
     axum::serve(listener, app).await.unwrap();
@@ -73,4 +90,12 @@ async fn main() {
 
 async fn health_check() -> &'static str {
     "OK"
+}
+
+async fn root_health_check() -> &'static str {
+    "Payment Gateway OK"
+}
+
+async fn api_health_check() -> &'static str {
+    "API Gateway OK"
 }

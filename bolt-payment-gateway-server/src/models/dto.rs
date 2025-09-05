@@ -50,7 +50,7 @@ pub struct InvoiceResponse {
 impl From<Invoice> for InvoiceResponse {
     fn from(invoice: Invoice) -> Self {
         Self {
-            checkout_url: format!("https://pay.example.com/i/{}", invoice.id.to_string()),
+            checkout_url: format!("https://test.boltproto.org/checkout/{}", invoice.id.to_string()),
             id: invoice.id.to_string(),
             status: invoice.status,
             amount: format_money_amount(invoice.amount),
@@ -63,23 +63,26 @@ impl From<Invoice> for InvoiceResponse {
 
 #[derive(Debug, Serialize)]
 pub struct PaymentResponse {
-    pub payment_id: String,
+    pub id: String,
     pub invoice_id: String,
     pub status: PaymentStatus,
     pub asset: PaymentToken,
     pub amount: String,
+    pub sender_address: Option<String>,
     pub received_at: DateTime<Utc>,
-    pub tx_id: String,
+    pub tx_id: Option<String>,
 }
 
 impl From<Payment> for PaymentResponse {
     fn from(payment: Payment) -> Self {
         Self {
-            payment_id: payment.payment_id,
-            invoice_id: payment.invoice_id,
+            id: payment.id.to_string(),
+            invoice_id: payment.invoice_id.to_string(),
             status: payment.status,
             asset: payment.asset,
-            amount: format_money_amount(payment.amount),
+            // amount: format_money_amount(payment.amount), // if this is in USD
+            amount: payment.amount.to_string(),
+            sender_address: payment.sender_address,
             received_at: payment.received_at,
             tx_id: payment.tx_id,
         }

@@ -26,7 +26,9 @@ A Rust-based payment gateway API server with MongoDB integration.
 1. **Start MongoDB** (if using local instance):
    ```bash
    # Using Docker
-   docker run -d -p 27017:27017 --name mongodb mongo:latest
+   docker run -d -p 27017:27017 --name mongocrypto mongo:latest
+
+   docker start mongocrypto
    
    # Or install MongoDB locally
    # https://docs.mongodb.com/manual/installation/
