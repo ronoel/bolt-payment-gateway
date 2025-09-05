@@ -50,7 +50,7 @@ pub struct InvoiceResponse {
 impl From<Invoice> for InvoiceResponse {
     fn from(invoice: Invoice) -> Self {
         Self {
-            checkout_url: format!("https://pay.example.com/i/{}", invoice.id.to_string()),
+            checkout_url: format!("https://test.boltproto.org/checkout/{}", invoice.id.to_string()),
             id: invoice.id.to_string(),
             status: invoice.status,
             amount: format_money_amount(invoice.amount),

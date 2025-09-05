@@ -1,13 +1,11 @@
 openapi: 3.1.0
 info:
-  title: sBTC Payment Gateway API
+  title: Bolt Payment Gateway
   description: API for creating invoices, retrieving invoices, fetching quotes, listing merchant invoices, and submitting payments (with multi-asset support in the future).
   version: 0.7.0
 servers:
-  - url: https://api.example.com/v1
-    description: Production API
-  - url: https://sandbox.api.example.com/v1
-    description: Sandbox/Test API
+  - url: https://test.boltproto.org/apipaymentgateway/v1
+    description: Test API
 
 paths:
   /merchants/{wallet_address}/invoices:
@@ -182,6 +180,8 @@ paths:
           required: true
           schema:
             type: string
+          description: Unique identifier of the invoice.
+          example: "66e123456789abcdef012345"
       responses:
         '200':
           description: Invoice found
@@ -213,6 +213,8 @@ paths:
           required: true
           schema:
             type: string
+          description: Unique identifier of the invoice.
+          example: "66e123456789abcdef012345"
       requestBody:
         required: true
         content:
@@ -227,7 +229,8 @@ paths:
                   example: "0xabcdef123456..."
                 asset:
                   type: string
-                  description: Asset used for the payment (e.g., sBTC, BTC, USDT).
+                  description: Asset used for the payment (e.g., sBTC, USDT).
+                  enum: [sBTC, USDT]
                   example: "sBTC"
                 amount:
                   type: string
@@ -373,10 +376,10 @@ components:
     Invoice:
       type: object
       properties:
-        invoice_id:
+        id:
           type: string
           description: Unique identifier of the invoice.
-          example: "inv_001"
+          example: "66e123456789abcdef012345"
         status:
           type: string
           description: Current status of the invoice.
@@ -403,19 +406,19 @@ components:
         checkout_url:
           type: string
           description: Hosted checkout URL that can be shared with customers for payment.
-          example: "https://pay.example.com/i/inv_001"
+          example: "https://test.boltproto.org/checkout/66e123456789abcdef012345"
 
     PaymentResult:
       type: object
       properties:
-        payment_id:
+        id:
           type: string
           description: Unique identifier of the payment attempt.
-          example: "pay_001"
+          example: "66e123456789abcdef012345"
         invoice_id:
           type: string
           description: Invoice ID associated with this payment.
-          example: "inv_001"
+          example: "66e123456789abcdef012345"
         status:
           type: string
           description: Current status of the payment.
@@ -424,6 +427,7 @@ components:
         asset:
           type: string
           description: Asset used in the payment.
+          enum: [sBTC, USDT]
           example: "sBTC"
         amount:
           type: string
