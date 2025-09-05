@@ -2,6 +2,11 @@
 
 **Bolt Payment Gateway** is a comprehensive payment solution built on Bitcoin L2 (**Stacks**) powered by the **Bolt Protocol**. It enables **instant-confirmed sBTC payments** with **fees paid in sBTC** (no STX). Issue invoices and payment links/QRs with **real-time quotes** and optional **USD-locked settlement** at pay time. Ships with an **OpenAPI** and a lightweight **dashboard** to create and track charges, integrating with Stacks-compatible wallets.
 
+## 🌐 Live Demo
+
+- **🚀 Try it now on Testnet**: [https://test.boltproto.org/tools/payment-gateway/](https://test.boltproto.org/tools/payment-gateway/)
+- **📹 Video Demo**: [Watch the solution in action](https://youtu.be/6YEIhXs7Bc4)
+
 ## 🚀 Features
 
 - **Instant sBTC Payments**: Lightning-fast transactions powered by Bolt Protocol
