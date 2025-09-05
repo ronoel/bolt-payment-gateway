@@ -95,7 +95,7 @@ export class GatewayError extends Error {
 })
 export class GatewayService {
   private baseUrl = environment.apiUrl;
-  private frontendUrl = 'http://localhost:4200'; // Current frontend URL
+  private frontendUrl = environment.frontURL;
   transactionService: any;
 
   constructor(

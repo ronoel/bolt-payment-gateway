@@ -17,9 +17,12 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
+            "outputPath": "dist/bolt-payment-gateway-ux",
             "browser": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
+            "baseHref": "/tools/payment-gateway/",
+            "deployUrl": "/tools/payment-gateway/",
             "assets": [
               {
                 "glob": "**/*",
@@ -40,8 +43,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "6kB",
+                  "maximumError": "20kB"
                 }
               ],
               "outputHashing": "all"
@@ -95,6 +98,6 @@
     }
   },
   "cli": {
-    "analytics": "67cd3636-f04e-4b60-9be5-ba8229d6c586"
+    "analytics": "89e2d3f0-6b8b-4646-9de0-6f342b3bd12a"
   }
 }

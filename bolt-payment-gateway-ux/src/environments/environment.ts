@@ -1,26 +1,29 @@
 export const environment = {
-    production: true,
-    applicationName: 'BoltProto',
-    network: "mainnet", // 'mainnet', 'testnet', 'devnet', 'mocknet'
-    apiUrl: 'https://boltproto.org/paymentapi/v1',
-    // apiUrl: '/api/v1',
-    blockchainAPIUrl: 'https://api.hiro.so',
+    production: false,
+    applicationName: 'sBTC Paytment Gateway',
+    network: "testnet", // 'mainnet', 'testnet', 'devnet', 'mocknet'
+    apiUrl: '/apipaymentgateway/v1',
+    frontURL: 'https://test.boltproto.org/tools/payment-gateway/',
+    // apiUrl: 'https://test.boltproto.org/api/v1',
+    // blockchainAPIUrl: 'http://localhost:3999',
+    blockchainAPIUrl: 'https://api.testnet.hiro.so',
     gatewayAddress: 'ST3QZNX3CGT6V7PE1PBK17FCRK1TP1AT02W1N0YJF',
     boltProtocol: {
+        // apiUrl: 'http://localhost:3000/api/v1',
         apiUrl: 'https://test.boltproto.org/api/v1',
-        contractAddress: 'SP3QZNX3CGT6V7PE1PBK17FCRK1TP1AT02ZHQCMVJ',
-        contractName: 'boltproto-sbtc-v2'
+        contractAddress: 'ST3QZNX3CGT6V7PE1PBK17FCRK1TP1AT02W1N0YJF',
+        contractName: 'boltproto-sbtc-rc-2-0-0'
     },
     supportedAsset: {
         sBTC: {
-            contractAddress: 'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4',
+            contractAddress: 'ST3QZNX3CGT6V7PE1PBK17FCRK1TP1AT02W1N0YJF',
             contractName: 'sbtc-token',
             contractToken: 'sbtc-token',
             decimals: 8,
             name: 'sBTC',
             symbol: 'sBTC',
             image: 'https://ipfs.io/ipfs/bafkreiffe46h5voimvulxm2s4ddszdm4uli4rwcvx34cgzz3xkfcc2hiwi',
-            fee: 200 // sats
+            fee: 2000 // sats
         }
     }
 };
