@@ -340,7 +340,8 @@ import { BoltProtocolService } from '../../services/bolt-protocol.service';
                                 <p class="info-text">
                                   If your wallet doesn't support Bolt Protocol, you can 
                                   <a href="https://test.boltproto.org/wallet" target="_blank" class="bolt-wallet-link">
-                                    access Bolt Wallet
+                                    <span class="link-icon">→</span>
+                                    <span class="link-text">access Bolt Wallet</span>
                                   </a> 
                                   to manage and transfer your sBTC.
                                 </p>
@@ -1509,27 +1510,54 @@ import { BoltProtocolService } from '../../services/bolt-protocol.service';
     }
 
     .bolt-wallet-link {
-      color: #6b7280;
+      color: #4f46e5;
       background: transparent !important;
-      text-decoration: underline;
-      text-decoration-color: #d1d5db;
+      text-decoration: none;
       font-weight: normal;
       border: none !important;
       padding: 0 !important;
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
       transition: all 0.2s ease;
+      border-radius: 3px;
+      position: relative;
     }
 
     .bolt-wallet-link:hover {
-      color: #4b5563;
-      background: transparent !important;
-      text-decoration-color: #6b7280;
+      color: #3730a3;
+      background: rgba(79, 70, 229, 0.05) !important;
+      padding: 1px 3px !important;
+      margin: -1px -3px;
     }
 
     .bolt-wallet-link:focus {
-      outline: 1px solid #9ca3af;
+      outline: 1px solid #a5b4fc;
       outline-offset: 1px;
-      border-radius: 2px;
-      background: transparent !important;
+      background: rgba(79, 70, 229, 0.05) !important;
+      padding: 1px 3px !important;
+      margin: -1px -3px;
+    }
+
+    .link-icon {
+      font-size: 11px;
+      opacity: 0.7;
+      transition: transform 0.2s ease;
+    }
+
+    .bolt-wallet-link:hover .link-icon {
+      transform: translateX(2px);
+      opacity: 1;
+    }
+
+    .link-text {
+      text-decoration: underline;
+      text-decoration-color: rgba(79, 70, 229, 0.3);
+      text-underline-offset: 2px;
+    }
+
+    .bolt-wallet-link:hover .link-text {
+      text-decoration-color: rgba(79, 70, 229, 0.6);
     }
   `]
 })
@@ -1590,7 +1618,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
         next: (invoice) => {
           this.invoice.set(invoice);
           this.loading.set(false);
-          
+
           // Load quote for active invoices
           if (invoice.status === 'created') {
             this.loadQuote();
@@ -1611,17 +1639,17 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       to: invoice.settlement_asset,
       to_amount: invoice.amount
     })
-    .pipe(takeUntil(this.destroy$))
-    .subscribe({
-      next: (quote) => {
-        this.quote.set(quote);
-        // Check balance sufficiency when quote loads
-        this.checkBalanceSufficiency();
-        // Start auto-refresh interval if not already running
-        this.startQuoteRefresh();
-      },
-      error: (error) => console.warn('Failed to load quote:', error)
-    });
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (quote) => {
+          this.quote.set(quote);
+          // Check balance sufficiency when quote loads
+          this.checkBalanceSufficiency();
+          // Start auto-refresh interval if not already running
+          this.startQuoteRefresh();
+        },
+        error: (error) => console.warn('Failed to load quote:', error)
+      });
   }
 
   private startQuoteRefresh() {
@@ -1646,14 +1674,14 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       to: invoice.settlement_asset,
       to_amount: invoice.amount
     })
-    .pipe(takeUntil(this.destroy$))
-    .subscribe({
-      next: (quote) => {
-        this.quote.set(quote);
-        this.checkBalanceSufficiency();
-      },
-      error: (error) => console.warn('Failed to refresh quote:', error)
-    });
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (quote) => {
+          this.quote.set(quote);
+          this.checkBalanceSufficiency();
+        },
+        error: (error) => console.warn('Failed to refresh quote:', error)
+      });
   }
 
   refreshQuote() {
@@ -1683,13 +1711,13 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     }
 
     this.balanceLoading.set(true);
-    
+
     try {
       const address = this.walletService.getSTXAddress();
       if (!address) {
         throw new Error('No wallet address available');
       }
-      
+
       const walletBalance = await firstValueFrom(this.boltProtocolService.getWalletBalance(address, 'sBTC'));
       console.log('Wallet balance:', walletBalance.balance);
       console.log('Wallet Address:', this.walletService.getWalletData());
@@ -1710,16 +1738,16 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     }
 
     this.faucetLoading.set(true);
-    
+
     try {
       const address = this.walletService.getSTXAddress();
       if (!address) {
         throw new Error('No wallet address available');
       }
-      
+
       await firstValueFrom(this.boltProtocolService.requestFaucet(address));
       this.toastService.success('Faucet Request Sent', 'sBTC should arrive in your wallet shortly');
-      
+
       // Refresh balance after a short delay to allow for transaction processing
       setTimeout(() => {
         this.checkBalance();
@@ -1735,7 +1763,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   private checkBalanceSufficiency() {
     const balance = this.walletBalance();
     const quote = this.quote();
-    
+
     if (balance !== null && quote) {
       const requiredSats = parseInt(quote.from_amount);
       this.hasInsufficientBalance.set(balance < requiredSats);
@@ -1800,7 +1828,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
 
   private handlePaymentResponse(response: any) {
     this.processing.set(false);
-    
+
     switch (response.status) {
       case 'confirmed':
         this.paymentStatus.set('completed');
@@ -1809,14 +1837,14 @@ export class CheckoutComponent implements OnInit, OnDestroy {
         // Reload invoice to get updated status
         this.loadInvoice();
         break;
-        
+
       case 'rejected':
         this.paymentStatus.set('idle');
         this.toastService.error('Payment Rejected', 'Your payment was rejected. Please try again with a new quote.');
         // Refresh quote to get updated rates
         this.refreshQuoteQuietly();
         break;
-        
+
       default:
         // Handle any unexpected status as rejected
         this.paymentStatus.set('idle');
@@ -1828,14 +1856,14 @@ export class CheckoutComponent implements OnInit, OnDestroy {
 
   private handlePaymentError(error: any) {
     this.processing.set(false);
-    
+
     // Check if the error indicates payment already exists
     if (error.error === 'payment_already_exists' || error.message?.includes('Payment already exists')) {
       this.paymentStatus.set('already_paid');
       // Don't show toast notification - just display on screen
       return;
     }
-    
+
     if (error.statusCode === 412) {
       // Payment rejected - no funds debited, user can try again
       this.paymentStatus.set('rejected');
@@ -1883,7 +1911,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   private async simulatePaymentProcess() {
     // Simulate transaction creation and signing
     await new Promise(resolve => setTimeout(resolve, 2000));
-    
+
     const mockTxId = 'tx_' + Math.random().toString(36).substr(2, 16);
     this.transactionId.set(mockTxId);
 
@@ -1906,7 +1934,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
         this.processing.set(false);
         this.toastService.success('Payment Successful!', 'Your payment has been confirmed');
         break;
-      
+
       case 'rejected':
         this.paymentStatus.set('rejected');
         this.processing.set(false);
@@ -1920,7 +1948,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
           message: 'Payment already exists or being processed'
         });
         break;
-      
+
       case 'error':
         this.processing.set(false);
         this.paymentStatus.set('idle');
@@ -1938,7 +1966,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
 
   private handleError(error: any) {
     this.loading.set(false);
-    
+
     if (error.statusCode === 404) {
       this.error.set('Payment request not found');
       this.errorAction.set('Return to Merchant');
@@ -1975,7 +2003,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     // For now, show abbreviated wallet address
     const invoice = this.invoice();
     if (!invoice) return 'Merchant';
-    
+
     // Extract wallet address from checkout URL or use a default
     return 'Merchant';
   }
@@ -2040,7 +2068,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   getPaymentQRData(): string {
     const invoice = this.invoice();
     if (!invoice) return '';
-    
+
     // Generate the checkout URL for this invoice
     const baseUrl = window.location.origin;
     return `${baseUrl}/pay/${invoice.invoice_id}`;
