@@ -319,6 +319,23 @@ import { BoltProtocolService } from '../../services/bolt-protocol.service';
                                 </div>
                               }
                             </div>
+                            
+                            <!-- Faucet Section -->
+                            <div class="faucet-section">
+                              <p class="faucet-message">Need sBTC to test? The faucet can top you up!</p>
+                              <button 
+                                class="faucet-btn"
+                                (click)="requestFaucet()"
+                                [disabled]="faucetLoading()"
+                                title="Request test sBTC from faucet">
+                                @if (faucetLoading()) {
+                                  <span class="spinner small"></span>
+                                  Requesting...
+                                } @else {
+                                  Request sBTC
+                                }
+                              </button>
+                            </div>
                           </div>
 
                           <!-- Insufficient Balance Warning -->
@@ -1412,6 +1429,58 @@ import { BoltProtocolService } from '../../services/bolt-protocol.service';
         padding: 5px 10px;
       }
     }
+
+    /* Faucet Section */
+    .faucet-section {
+      margin-top: 16px;
+      padding: 12px;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .faucet-message {
+      margin: 0 0 12px 0;
+      font-size: 14px;
+      color: #6c757d;
+      font-weight: 500;
+    }
+
+    .faucet-btn {
+      background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin: 0 auto;
+      min-width: 120px;
+    }
+
+    .faucet-btn:hover:not(:disabled) {
+      background: linear-gradient(135deg, #218838 0%, #1abc9c 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+    }
+
+    .faucet-btn:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .faucet-btn .spinner {
+      width: 14px;
+      height: 14px;
+    }
   `]
 })
 export class CheckoutComponent implements OnInit, OnDestroy {
@@ -1436,6 +1505,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   walletBalance = signal<number | null>(null);
   balanceLoading = signal(false);
   hasInsufficientBalance = signal(false);
+  faucetLoading = signal(false);
 
   private invoiceId = '';
 
@@ -1580,6 +1650,35 @@ export class CheckoutComponent implements OnInit, OnDestroy {
       this.walletBalance.set(0);
     } finally {
       this.balanceLoading.set(false);
+    }
+  }
+
+  async requestFaucet() {
+    if (!this.walletService.isLoggedInSignal()) {
+      this.toastService.error('Wallet Required', 'Please connect your wallet first');
+      return;
+    }
+
+    this.faucetLoading.set(true);
+    
+    try {
+      const address = this.walletService.getSTXAddress();
+      if (!address) {
+        throw new Error('No wallet address available');
+      }
+      
+      await firstValueFrom(this.boltProtocolService.requestFaucet(address));
+      this.toastService.success('Faucet Request Sent', 'sBTC should arrive in your wallet shortly');
+      
+      // Refresh balance after a short delay to allow for transaction processing
+      setTimeout(() => {
+        this.checkBalance();
+      }, 3000);
+    } catch (error) {
+      console.error('Failed to request faucet:', error);
+      this.toastService.error('Faucet Request Failed', 'Please try again later');
+    } finally {
+      this.faucetLoading.set(false);
     }
   }
 

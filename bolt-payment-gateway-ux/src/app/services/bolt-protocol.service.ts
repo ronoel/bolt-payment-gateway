@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
@@ -16,12 +16,23 @@ export class BoltProtocolService {
   private http = inject(HttpClient);
   private apiUrl = environment.boltProtocol.apiUrl;
 
+  private getClientHeaders(): HttpHeaders {
+    return new HttpHeaders().set('x-client-source', 'bolt-payment-gateway');
+  }
+
   getWalletBalance(address: string, token: string): Observable<WalletBalance> {
     return this.http.get<any>(`${this.apiUrl}/wallet/${address}/${token}/balance`).pipe(
       map(response => ({
         address: response.address,
         balance: BigInt(response.balance)
       }))
+    );
+  }
+
+  requestFaucet(address: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/transaction/${environment.supportedAsset.sBTC.contractToken}/faucet`, 
+      { address },
+      { headers: this.getClientHeaders() }
     );
   }
 
