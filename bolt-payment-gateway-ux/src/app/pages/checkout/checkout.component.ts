@@ -335,6 +335,16 @@ import { BoltProtocolService } from '../../services/bolt-protocol.service';
                                   Request sBTC
                                 }
                               </button>
+                              
+                              <div class="wallet-info">
+                                <p class="info-text">
+                                  If your wallet doesn't support Bolt Protocol, you can 
+                                  <a href="https://test.boltproto.org/wallet" target="_blank" class="bolt-wallet-link">
+                                    access Bolt Wallet
+                                  </a> 
+                                  to manage and transfer your sBTC.
+                                </p>
+                              </div>
                             </div>
                           </div>
 
@@ -1480,6 +1490,40 @@ import { BoltProtocolService } from '../../services/bolt-protocol.service';
     .faucet-btn .spinner {
       width: 14px;
       height: 14px;
+    }
+
+    /* Wallet Info Section */
+    .wallet-info {
+      margin-top: 12px;
+      padding: 10px;
+      background: #f8f9fa;
+      border-left: 3px solid #6c757d;
+      border-radius: 4px;
+    }
+
+    .info-text {
+      margin: 0;
+      font-size: 13px;
+      color: #6c757d;
+      line-height: 1.4;
+    }
+
+    .bolt-wallet-link {
+      color: #007bff;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s ease;
+    }
+
+    .bolt-wallet-link:hover {
+      color: #0056b3;
+      text-decoration: underline;
+    }
+
+    .bolt-wallet-link:focus {
+      outline: 2px solid #007bff;
+      outline-offset: 1px;
+      border-radius: 2px;
     }
   `]
 })
