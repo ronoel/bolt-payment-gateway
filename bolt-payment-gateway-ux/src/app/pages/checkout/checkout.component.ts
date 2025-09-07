@@ -1509,21 +1509,27 @@ import { BoltProtocolService } from '../../services/bolt-protocol.service';
     }
 
     .bolt-wallet-link {
-      color: #007bff;
-      text-decoration: none;
-      font-weight: 500;
-      transition: color 0.2s ease;
+      color: #6b7280;
+      background: transparent !important;
+      text-decoration: underline;
+      text-decoration-color: #d1d5db;
+      font-weight: normal;
+      border: none !important;
+      padding: 0 !important;
+      transition: all 0.2s ease;
     }
 
     .bolt-wallet-link:hover {
-      color: #0056b3;
-      text-decoration: underline;
+      color: #4b5563;
+      background: transparent !important;
+      text-decoration-color: #6b7280;
     }
 
     .bolt-wallet-link:focus {
-      outline: 2px solid #007bff;
+      outline: 1px solid #9ca3af;
       outline-offset: 1px;
       border-radius: 2px;
+      background: transparent !important;
     }
   `]
 })
