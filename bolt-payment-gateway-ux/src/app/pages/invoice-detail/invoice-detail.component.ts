@@ -18,7 +18,8 @@ import { SharePanelComponent } from '../../components/share-panel/share-panel.co
         <div class="container">
           <div class="header-left">
             <a routerLink="/dashboard" class="back-btn">
-              ← Back to Dashboard
+              <span class="back-icon">←</span>
+              <span class="back-text">Back to Dashboard</span>
             </a>
             <div class="header-title">
               <h1>📄 Invoice Details</h1>
@@ -229,19 +230,50 @@ import { SharePanelComponent } from '../../components/share-panel/share-panel.co
     }
 
     .back-btn {
-      color: #6b7280;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      color: #64748b;
       text-decoration: none;
       font-size: 14px;
+      font-weight: 500;
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 6px;
       width: fit-content;
-      margin-bottom: 8px;
-      transition: color 0.2s;
+      margin-bottom: 12px;
+      padding: 8px 14px;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     }
 
     .back-btn:hover {
-      color: #f97316;
+      background: #f1f5f9;
+      color: #475569;
+      border-color: #cbd5e1;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .back-icon {
+      font-size: 14px;
+      transition: transform 0.2s ease;
+    }
+
+    .back-btn:hover .back-icon {
+      transform: translateX(-2px);
+    }
+
+    .back-btn:focus {
+      outline: none;
+      background: #f1f5f9;
+      color: #475569;
+      border-color: #94a3b8;
+      box-shadow: 0 0 0 2px rgba(148, 163, 184, 0.2);
+    }
+
+    .back-text {
+      letter-spacing: 0.025em;
     }
 
     .header-title h1 {
@@ -584,6 +616,16 @@ import { SharePanelComponent } from '../../components/share-panel/share-panel.co
 
       .header-right {
         align-self: flex-start;
+      }
+
+      .back-btn {
+        font-size: 13px;
+        padding: 7px 12px;
+        margin-bottom: 10px;
+      }
+
+      .back-icon {
+        font-size: 13px;
       }
 
       .amount {

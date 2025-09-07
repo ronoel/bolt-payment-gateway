@@ -118,12 +118,6 @@ import { InvoiceTableComponent } from '../../components/invoice-table/invoice-ta
                     <span>Refresh</span>
                   }
                 </button>
-                <a routerLink="/invoices" class="btn btn-ghost btn-sm">
-                  <span>View All</span>
-                  <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                  </svg>
-                </a>
               </div>
             </div>
 
